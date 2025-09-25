@@ -7,7 +7,7 @@ const ProtectedRoute = ({ children }) => {
   const { currentUser, subscriptionStatus, loading } = useAuth();
   const location = useLocation();
 
-  // 1. Jeśli weryfikujemy stan, zawsze pokazuj ładowanie
+  // Krok 1: Jeśli weryfikujemy stan, zawsze pokazuj ładowanie
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -16,25 +16,32 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  // 2. Jeśli nie ma użytkownika, zawsze przekieruj do logowania
+  // Krok 2: Jeśli nie ma użytkownika, zawsze przekieruj do logowania
   if (!currentUser) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // 3. Sprawdzamy, czy użytkownik jest na specjalnych stronach
+  // ✅ NOWA, UPROSZCZONA LOGIKA
+  // Definiujemy, co to znaczy mieć aktywną subskrypcję
+  const hasActiveSubscription = ['active', 'trialing'].includes(subscriptionStatus);
+  
+  // Definiujemy, czy użytkownik jest na ścieżce związanej z procesem płatności
   const isSubscriptionRoute = ['/subscribe', '/success', '/cancel'].includes(location.pathname);
 
-  // 4. Jeśli użytkownik ma aktywną subskrypcję, ale jest na stronie subskrypcji -> wpuść go do aplikacji
-  if (subscriptionStatus === 'active' && isSubscriptionRoute) {
+  // Scenariusz 1: Użytkownik ma subskrypcję i próbuje wejść na stronę płatności.
+  // Akcja: Przekieruj go do głównej aplikacji, bo nie musi już nic kupować.
+  if (hasActiveSubscription && isSubscriptionRoute) {
     return <Navigate to="/" replace />;
   }
   
-  // 5. Jeśli NIE ma aktywnej subskrypcji i NIE jest na stronie subskrypcji -> przekieruj
-  if (subscriptionStatus !== 'active' && !isSubscriptionRoute) {
+  // Scenariusz 2: Użytkownik NIE ma subskrypcji i próbuje wejść do aplikacji.
+  // Akcja: Przekieruj go na stronę płatności, bo musi najpierw kupić dostęp.
+  if (!hasActiveSubscription && !isSubscriptionRoute) {
     return <Navigate to="/subscribe" replace />;
   }
 
-  // 6. Jeśli wszystkie warunki są spełnione, wpuszczamy użytkownika
+  // Jeśli żaden z powyższych scenariuszy nie jest prawdziwy, to znaczy, że wszystko jest w porządku.
+  // (np. ma subskrypcję i jest w aplikacji, lub nie ma subskrypcji i jest na stronie płatności)
   return children;
 };
 
