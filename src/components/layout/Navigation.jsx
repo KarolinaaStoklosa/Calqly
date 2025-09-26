@@ -4,13 +4,15 @@ import {
   Package, Eye, Move, Grip, RotateCcw, ArrowUp, 
   Package2, Square, Wrench, Plus, LifeBuoy, 
   FileInput, PieChart, X,
-  ChevronRight, Sparkles
+  ChevronRight, Sparkles, FileText, Shield
 } from 'lucide-react';
 import { useProject } from '../../context/ProjectContext';
+import { Link } from 'react-router-dom';
 
 const Navigation = ({ activeTab, setActiveTab, isOpen, closeSidebar }) => {
 
   const { resetProject } = useProject();
+  const appVersion = "1.0.0";
   
   // ✅ ZMIANA: Uproszczona i zaktualizowana lista menu
   const menuItems = [
@@ -123,6 +125,30 @@ const Navigation = ({ activeTab, setActiveTab, isOpen, closeSidebar }) => {
             })}
           </div>
         </div>
+        <div className="border-t p-4 space-y-4">
+          <div className="px-3 text-xs font-bold text-gray-400 uppercase tracking-wider">
+              INFORMACJE
+          </div>
+          <div className="space-y-1 text-sm">
+            <Link to="/regulamin" className="flex items-center p-2 rounded-lg text-gray-600 hover:bg-gray-100">
+              <FileText className="w-4 h-4 mr-3 text-gray-400" /> Regulamin
+            </Link>
+            <Link to="/polityka-prywatnosci" className="flex items-center p-2 rounded-lg text-gray-600 hover:bg-gray-100">
+              <Shield className="w-4 h-4 mr-3 text-gray-400" /> Polityka Prywatności
+            </Link>
+             <Link to="/disclaimer" className="flex items-center p-2 rounded-lg text-gray-600 hover:bg-gray-100">
+              <LifeBuoy className="w-4 h-4 mr-3 text-gray-400" /> Zastrzeżenia Prawne
+            </Link>
+          </div>
+          <div className="text-xs text-gray-500 space-y-2 pt-2 border-t mt-4">
+          <p className="font-bold text-gray-600">WOODLY GROUP</p>
+          <p>NIP: [NIP SPÓŁKI]</p>
+          <p>REGON: [REGON SPÓŁKI]</p>
+          <p>Adres: [ADRES SPÓŁKI], Nowy Wiśnicz</p>
+          <p>Kontakt: <a href="mailto:b.stoklosa@woodlygroup.pl" className="text-blue-600 hover:underline">b.stoklosa@woodlygroup.pl</a></p>
+          <p className="pt-2">&copy; {new Date().getFullYear()} Calqly. Wersja {appVersion}</p>
+        </div>
+      </div>
 
       </nav>
     </>

@@ -46,7 +46,22 @@ const SignupPage = () => {
             <input type="password" {...register('confirmPassword', { required: 'Potwierdzenie hasła jest wymagane', validate: value => value === password || 'Hasła nie są takie same' })} className="w-full p-3 mt-1 border rounded-md focus:ring-2 focus:ring-blue-500" />
             {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</p>}
           </div>
-          <button type="submit" disabled={loading} className="w-full py-3 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-300">
+          <div>
+            <div className="flex items-start">
+              <input 
+                id="accept-disclaimer"
+                type="checkbox" 
+                {...register('acceptDisclaimer', { required: 'Akceptacja tego warunku jest wymagana' })}
+                className="h-4 w-4 mt-1 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+              />
+              <label htmlFor="accept-disclaimer" className="ml-2 text-xs text-gray-600">
+                Rozumiem, że Qalqly jest narzędziem wspomagającym i zobowiązuję się do weryfikacji wszystkich wyników. Akceptuję pełną odpowiedzialność za decyzje biznesowe podejmowane na podstawie kalkulacji. <Link to="/disclaimer" target="_blank" className="text-blue-600 underline">Więcej...</Link>
+              </label>
+            </div>
+            {errors.acceptDisclaimer && <p className="text-red-500 text-xs mt-1">{errors.acceptDisclaimer.message}</p>}
+          </div>
+
+          <button type="submit" disabled={loading} className="w-full py-3 ...">
             {loading ? 'Tworzenie konta...' : 'Zarejestruj się'}
           </button>
         </form>

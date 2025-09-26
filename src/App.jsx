@@ -26,6 +26,10 @@ import CompanySettings from './components/sections/CompanySettings';
 import ArchivePage from './components/sections/ArchivePage';
 import MaterialsManager from './components/sections/MaterialsManager';
 import { Sparkles, FilePlus } from 'lucide-react';
+import LegalPage from './components/pages/LegalPage.jsx';
+import { TermsContent, PrivacyPolicyContent, DisclaimerContent } from './data/legalContent.jsx'; 
+import CookieConsentBanner from './components/layout/CookieConsentBanner'; 
+import Footer from './components/layout/Footer';
 
 const WelcomeScreen = ({ setActiveTab, resetProject }) => {
   const handleCreateFirstProject = () => {
@@ -121,13 +125,29 @@ function App() {
       <AuthProvider>
         <MaterialsProvider>
           <ProjectProvider>
+            <CookieConsentBanner />
             <Routes>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
+               <Route path="/regulamin" element={<LegalPage title="Regulamin Aplikacji Qalqly">{TermsContent}</LegalPage>} />
+              <Route path="/polityka-prywatnosci" element={<LegalPage title="Polityka Prywatności i Plików Cookies">{PrivacyPolicyContent}</LegalPage>} />
+              <Route path="/disclaimer" element={<LegalPage title="Zastrzeżenia Prawne">{DisclaimerContent}</LegalPage>} />
+
               <Route path="/subscribe" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
               <Route path="/success" element={<ProtectedRoute><SuccessPage /></ProtectedRoute>} />
               <Route path="/cancel" element={<ProtectedRoute><CancelPage /></ProtectedRoute>} />
-              <Route path="/*" element={<ProtectedRoute><MainCalculatorApp /></ProtectedRoute>} />
+               <Route 
+                path="/*" 
+                element={
+                  <ProtectedRoute>
+                    <>
+                      <MainCalculatorApp />
+                      {/* ✅ DODAJEMY MINIMALISTYCZNĄ STOPKĘ TUTAJ */}
+                      <Footer />
+                    </>
+                  </ProtectedRoute>
+                } 
+              />
             </Routes>
           </ProjectProvider>
         </MaterialsProvider>
