@@ -3,12 +3,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { loadStripe } from '@stripe/stripe-js';
 import { useAuth } from '../../context/AuthContext';
-import { CheckCircle, Star, LogOut } from 'lucide-react';
+import { CheckCircle, Star, LogOut, AlertTriangle, CreditCard } from 'lucide-react';
 
 // Wklej tutaj swój klucz publiczny Stripe (Publishable key)
 const stripePromise = loadStripe('pk_test_51RsUKtBuVC83aayp5HomJgNFBvntorqtHoI3YEr9GCooBrYJwSJVYYru4eYnpoZpYYQAtGVCC9wzsiAOs0WYb50k00Sp7qMaKc');
-
-
 // Wklej tutaj OBA ID cen ze Stripe
 const RECURRING_PRICE_ID = 'price_1RsUN0BuVC83aaypNeDJGvLv' ;
 const ONE_TIME_PRICE_ID = 'price_1RsmEUBuVC83aaypZiU5WBYR';
@@ -40,6 +38,7 @@ const AuthHeader = () => {
 const SubscriptionPage = () => {
   const [loading, setLoading] = useState(null);
   const [error, setError] = useState('');
+  const { subscription } = useAuth(); 
 
   const handleSubscribe = async (priceId, mode) => {
     setLoading(mode);
@@ -60,6 +59,43 @@ const SubscriptionPage = () => {
       setLoading(null);
     }
   };
+   const handleUpdatePayment = async () => {
+    setLoading('portal');
+    try {
+      const functions = getFunctions();
+      const createPortalLink = httpsCallable(functions, 'createPortalLink');
+      const { data } = await createPortalLink();
+      window.location.href = data.url;
+    } catch (err) {
+      console.error("Błąd otwierania portalu Stripe:", err);
+      setError('Nie udało się otworzyć portalu płatności. Spróbuj ponownie.');
+      setLoading(null);
+    }
+  };
+
+   if (subscription?.status === 'past_due' || subscription?.status === 'unpaid') {
+    return (
+      <div className="relative flex items-center justify-center min-h-screen bg-gray-50 p-4">
+        <AuthHeader />
+        <div className="w-full max-w-lg p-8 space-y-6 bg-white rounded-xl shadow-lg text-center">
+          <AlertTriangle className="w-16 h-16 text-red-500 mx-auto" />
+          <h1 className="text-3xl font-bold text-gray-800">Problem z płatnością</h1>
+          <p className="text-gray-600">
+            Wygląda na to, że ostatnia próba obciążenia Twojej karty nie powiodła się. Aby odzyskać pełen dostęp do aplikacji, prosimy o zaktualizowanie metody płatności.
+          </p>
+          <button 
+            onClick={handleUpdatePayment} 
+            disabled={!!loading} 
+            className="w-full mt-4 py-3 font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 disabled:bg-red-400 flex items-center justify-center gap-2"
+          >
+            <CreditCard size={20} />
+            {loading === 'portal' ? 'Przekierowuję...' : 'Zaktualizuj Metodę Płatności'}
+          </button>
+          {error && <p className="text-red-600 mt-4">{error}</p>}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex items-center justify-center min-h-screen bg-gray-50 p-4">

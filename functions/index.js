@@ -93,8 +93,30 @@ exports.createStripeCheckout = onCall({ cors: true }, async (request) => {
   }
 });
 
+// exports.createPortalLink = onCall({ cors: true }, async (request) => {
+//     // ... (ta funkcja pozostaje bez zmian, ale warto upewnić się, że pobiera stripeCustomerId)
+//     if (!request.auth) {
+//       throw new HttpsError("unauthenticated", "Musisz być zalogowany.");
+//     }
+//     const YOUR_DOMAIN = "http://localhost:5174"; 
+//     try {
+//       const uid = request.auth.uid;
+//       const userDoc = await admin.firestore().collection("users").doc(uid).get();
+//       const stripeCustomerId = userDoc.data()?.stripeCustomerId; // ✅ Używamy jednolitego pola
+//       if (!stripeCustomerId) {
+//         throw new HttpsError("not-found", "Nie znaleziono konta klienta Stripe.");
+//       }
+//       const portalSession = await stripe.billingPortal.sessions.create({
+//         customer: stripeCustomerId,
+//         return_url: `${YOUR_DOMAIN}/company-settings`,
+//       });
+//       return { url: portalSession.url };
+//     } catch (error) {
+//       logger.error("Błąd tworzenia sesji portalu:", error);
+//       throw new HttpsError("internal", error.message);
+//     }
+// });
 exports.createPortalLink = onCall({ cors: true }, async (request) => {
-    // ... (ta funkcja pozostaje bez zmian, ale warto upewnić się, że pobiera stripeCustomerId)
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Musisz być zalogowany.");
     }
@@ -102,7 +124,11 @@ exports.createPortalLink = onCall({ cors: true }, async (request) => {
     try {
       const uid = request.auth.uid;
       const userDoc = await admin.firestore().collection("users").doc(uid).get();
-      const stripeCustomerId = userDoc.data()?.stripeCustomerId; // ✅ Używamy jednolitego pola
+
+      // ✅ KROK DEBUGOWANIA: Dodaj tę linię, aby zalogować dane
+      logger.info("Pobrane dane użytkownika z Firestore:", userDoc.data());
+
+      const stripeCustomerId = userDoc.data()?.stripeCustomerId;
       if (!stripeCustomerId) {
         throw new HttpsError("not-found", "Nie znaleziono konta klienta Stripe.");
       }
@@ -173,14 +199,33 @@ exports.stripeWebhook = onRequest(async (req, res) => {
       case 'checkout.session.completed': {
         const session = dataObject;
         const userId = session.client_reference_id || session.metadata.userId;
-        const stripeCustomerId = session.customer;
-
-        if (userId && stripeCustomerId) {
+        
+        if (userId) {
             const userRef = admin.firestore().collection('users').doc(userId);
-            await userRef.set({ stripeCustomerId: stripeCustomerId }, { merge: true });
-            logger.info(`Zapisano stripeCustomerId: ${stripeCustomerId} dla użytkownika ${userId}`);
+            
+            // ✅ NOWA LOGIKA: Sprawdzamy tryb sesji
+            if (session.mode === 'payment') {
+                // To jest płatność jednorazowa
+                const thirtyDaysFromNow = new Date();
+                thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+                
+                await userRef.set({
+                    stripeCustomerId: session.customer,
+                    // Ustawiamy status 'active', aby odzwierciedlić aktywny dostęp
+                    subscription: { status: 'active' }, 
+                    // Zapisujemy konkretną datę wygaśnięcia dostępu
+                    accessExpiresAt: admin.firestore.Timestamp.fromDate(thirtyDaysFromNow)
+                }, { merge: true });
+
+                logger.info(`Jednorazowy dostęp przyznany dla ${userId}, wygasa: ${thirtyDaysFromNow}`);
+
+            } else if (session.mode === 'subscription') {
+                // To jest subskrypcja - wystarczy zapisać ID klienta, resztę zrobią inne webhooki
+                await userRef.set({ stripeCustomerId: session.customer }, { merge: true });
+                logger.info(`Zapisano stripeCustomerId: ${session.customer} dla subskrypcji użytkownika ${userId}`);
+            }
         } else {
-            logger.warn(`Brak userId lub stripeCustomerId w sesji ${session.id}`);
+            logger.warn(`Brak userId w sesji checkout ${session.id}`);
         }
         break;
       }

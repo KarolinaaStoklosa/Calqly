@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useProject } from '../../context/ProjectContext';
 import { Calculator, Menu, Sun, Moon, Settings, User, Search, Package, LogOut, Edit, Save, X, Loader2 } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import BillingStatus from '../billing/BilingStatus';
 
 
 const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
@@ -129,7 +130,7 @@ const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
                         <p className="font-semibold">Zalogowano jako</p>
                         <p className="truncate">{currentUser.email}</p>
                       </div>
-                       <button
+                       {/* <button
                         onClick={handleManageSubscription}
                         disabled={isPortalLoading}
                         className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50 dark:text-gray-200 dark:hover:bg-gray-700"
@@ -140,7 +141,8 @@ const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
                           <Settings className="h-4 w-4" />
                         )}
                         <span>Zarządzaj Subskrypcją</span>
-                      </button>
+                      </button> */}
+                      <BillingStatus variant="dropdown" />
                       <div className="border-t border-gray-100 dark:border-gray-700"></div>
                       <button
                         onClick={handleLogout}

@@ -1,23 +1,24 @@
+// Plik: src/firebase/config.js (NOWA WERSJA)
+
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage"; // 1. Dodaj ten import
+import { getStorage } from "firebase/storage";
 
-
+// Obiekt konfiguracyjny wczytuje teraz zmienne z `import.meta.env`
 const firebaseConfig = {
-  apiKey: "AIzaSyAZMalqmclX4Fulb0iFKrrM62UoGf8biGo",
-  authDomain: "woodly-calculator.firebaseapp.com",
-  projectId: "woodly-calculator",
-  storageBucket: "woodly-calculator.firebasestorage.app",
-  messagingSenderId: "773606677537",
-  appId: "1:773606677537:web:f359802f2e6e16e33ad760"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 const app = initializeApp(firebaseConfig);
 
-// Eksportujemy usługi, z których będziemy korzystać
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const storage = getStorage(app); // 2. Zainicjalizuj i wyeksportuj storage
+export const storage = getStorage(app);
 
 export default app;

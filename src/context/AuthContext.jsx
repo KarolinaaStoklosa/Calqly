@@ -22,6 +22,8 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [subscriptionStatus, setSubscriptionStatus] = useState(null);
 
+  const [userData, setUserData] = useState(null);
+
   // 1. DODAJEMY STAN DLA USTAWIEŃ FIRMY
   const [settings, setSettings] = useState(null); 
 
@@ -83,9 +85,35 @@ export const AuthProvider = ({ children }) => {
         const unsubscribeProfile = onSnapshot(userRef, (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
+             setUserData(data);
             // 2. Wczytujemy ustawienia firmy i subskrypcji
-            setSubscriptionStatus(data.subscription?.status || 'inactive');
-            setSettings(data.settings || {}); // Wczytujemy ustawienia lub pusty obiekt
+            const subStatus = data.subscription?.status || 'inactive';
+            const expiresAt = data.accessExpiresAt?.toDate(); // Konwertujemy Timestamp na datę JS
+            
+            let finalStatus = subStatus;
+
+            // Jeśli jest data wygaśnięcia, ma ona priorytet
+            if (expiresAt) {
+                if (new Date() < expiresAt) {
+                    finalStatus = 'active'; // Dostęp jest wciąż ważny
+                } else {
+                    finalStatus = 'inactive'; // Dostęp wygasł
+                }
+            }
+            
+            setSubscriptionStatus(finalStatus);
+            setSettings(data.settings || {});
+          } else {
+            // Użytkownik jest w Auth, ale nie ma go w Firestore - tworzymy dokument
+             setDoc(userRef, {
+                email: user.email,
+                createdAt: new Date(),
+                subscription: { status: 'inactive' },
+                settings: {}
+            });
+            setSubscriptionStatus('inactive');
+            
+            setSettings({});
           }
           setLoading(false);
         }, (error) => {
@@ -95,7 +123,8 @@ export const AuthProvider = ({ children }) => {
         return () => unsubscribeProfile(); 
       } else {
         setSubscriptionStatus(null);
-        setSettings(null); // Czyścimy ustawienia po wylogowaniu
+        setUserData(null);
+        setSettings(null);
         setLoading(false);
       }
     });
@@ -107,6 +136,8 @@ export const AuthProvider = ({ children }) => {
     currentUser,
     loading,
     subscriptionStatus,
+    userData,
+    subscription: userData?.subscription, 
     settings, // 4. DODAJEMY `settings` i `updateSettings` DO WARTOŚCI KONTEKSTU
     updateSettings,
     signup,
