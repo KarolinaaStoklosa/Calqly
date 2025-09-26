@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Header from './Header';
 import Navigation from './Navigation';
+import ExpirationNotifier from '../billing/ExpirationNotifier';
 
 const Layout = ({ children }) => {
   const [darkMode, setDarkMode] = useState(false);
@@ -38,9 +39,11 @@ const Layout = ({ children }) => {
         
         <main className="flex-1 p-6 lg:p-8 overflow-auto">
           <div className="max-w-7xl mx-auto">
+             <ExpirationNotifier />
             {children({activeTab, setActiveTab})}
           </div>
         </main>
+       
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 
 const ProtectedRoute = ({ children }) => {
-  const { currentUser, subscriptionStatus, loading } = useAuth();
+   const { currentUser, subscriptionStatus, loading, userData } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -23,10 +23,14 @@ const ProtectedRoute = ({ children }) => {
   const hasAccess = ['active', 'trialing'].includes(subscriptionStatus);
   const isSubscriptionRoute = ['/subscribe', '/success', '/cancel'].includes(location.pathname);
 
-  if (hasAccess && isSubscriptionRoute) {
+  const isRecurringSubscription = hasAccess && !userData?.accessExpiresAt;
+
+  // Przekieruj użytkownika z subskrypcją cykliczną, który próbuje wejść na stronę płatności
+  if (isRecurringSubscription && isSubscriptionRoute) {
     return <Navigate to="/" replace />;
   }
   
+  // Przekieruj użytkownika bez dostępu, który próbuje wejść do aplikacji
   if (!hasAccess && !isSubscriptionRoute) {
     return <Navigate to="/subscribe" replace />;
   }
