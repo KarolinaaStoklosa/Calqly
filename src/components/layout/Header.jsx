@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useProject } from '../../context/ProjectContext';
-import { Calculator, Menu, Sun, Moon, Settings, User, Search, Package, LogOut, Edit, Save, X, Loader2 } from 'lucide-react';
+import { Calculator, Menu, Sun, Moon, Settings, User, Search, Package, LogOut, Edit, Save, X, Loader2, ChevronRight, FileText } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import BillingStatus from '../billing/BilingStatus';
 
@@ -10,7 +10,7 @@ import BillingStatus from '../billing/BilingStatus';
 const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
-  const { isEditMode, setIsEditMode, saveDataToFirestore, isSaving } = useProject();
+  const { isEditMode, setIsEditMode, saveDataToFirestore, isSaving, projectData } = useProject();
   
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isPortalLoading, setIsPortalLoading] = useState(false);
@@ -82,6 +82,15 @@ const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
             </div>
           </div>
         </div>
+        <div className="flex items-center justify-between gap-4">
+           {projectData && (
+            <div className="hidden sm:flex items-center gap-2 text-sm text-gray-500">
+              <ChevronRight className="w-4 h-4 text-gray-300" />
+              <FileText className="w-4 h-4 text-gray-400" />
+              <span className="font-medium text-gray-700">{projectData.projectName || 'Nowy Projekt'}</span>
+            </div>
+          )}
+          </div>
 
         {/* === PRAWA STRONA (PRZEBUDOWANA) === */}
         <div className="flex items-center gap-4">
