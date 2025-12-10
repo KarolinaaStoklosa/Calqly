@@ -6,9 +6,20 @@ const functions = require("firebase-functions");
 
 // --- KRYTYCZNA POPRAWKA STRIPE ---
 // Wracamy do process.env - Zmienne muszą być ustawione w pliku .env/firebase config.
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY, { 
-  apiVersion: '2024-06-20', 
+const stripeConfig = functions.config().stripe;
+const stripeKey = stripeConfig ? stripeConfig.secret_key : null;
+
+if (!stripeKey) {
+  logger.error("KRYTYCZNY BŁĄD: Nie znaleziono klucza Stripe w konfiguracji!");
+}
+
+const stripe = require("stripe")(stripeKey, { 
+  apiVersion: '2024-06-20', 
 });
+
+// const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY, { 
+//   apiVersion: '2024-06-20', 
+// });
 admin.initializeApp();
 
 // ✅ NOWA FUNKCJA POMOCNICZA: Gwarantuje bezpieczną konwersję na Timestamp
