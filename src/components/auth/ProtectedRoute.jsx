@@ -19,20 +19,20 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // ✅ SUPER PROSTA I CZYTELNA LOGIKA
-  const hasAccess = ['active', 'trialing'].includes(subscriptionStatus);
+// STATUS OSTATECZNY: AuthContext ustalił, czy dostęp jest ważny (również jednorazowy)
+  const hasValidAccess = subscriptionStatus === 'active' || subscriptionStatus === 'trialing';
+  
+  // Czy trasa to jedna ze stron płatności?
   const isSubscriptionRoute = ['/subscribe', '/success', '/cancel'].includes(location.pathname);
 
-  const isRecurringSubscription = hasAccess && !userData?.accessExpiresAt;
-
-  // Przekieruj użytkownika z subskrypcją cykliczną, który próbuje wejść na stronę płatności
-  if (isRecurringSubscription && isSubscriptionRoute) {
-    return <Navigate to="/" replace />;
-  }
-  
-  // Przekieruj użytkownika bez dostępu, który próbuje wejść do aplikacji
-  if (!hasAccess && !isSubscriptionRoute) {
+  // 1. BLOKADA DOSTĘPU DO APLIKACJI: Użytkownik bez aktywnego dostępu próbuje wejść do /
+  if (!hasValidAccess && !isSubscriptionRoute) {
     return <Navigate to="/subscribe" replace />;
+  }
+
+  // 2. BLOKADA DOSTĘPU DO PŁATNOŚCI: Użytkownik z aktywnym dostępem próbuje wejść na /subscribe
+  if (hasValidAccess && isSubscriptionRoute) {
+    return <Navigate to="/" replace />;
   }
 
   return children;

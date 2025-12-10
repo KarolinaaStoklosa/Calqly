@@ -5,11 +5,13 @@ import { loadStripe } from '@stripe/stripe-js';
 import { useAuth } from '../../context/AuthContext';
 import { CheckCircle, Star, LogOut, AlertTriangle, CreditCard } from 'lucide-react';
 
-// Wklej tutaj swój klucz publiczny Stripe (Publishable key)
-const stripePromise = loadStripe('pk_test_51RsUKtBuVC83aayp5HomJgNFBvntorqtHoI3YEr9GCooBrYJwSJVYYru4eYnpoZpYYQAtGVCC9wzsiAOs0WYb50k00Sp7qMaKc');
-// Wklej tutaj OBA ID cen ze Stripe
-const RECURRING_PRICE_ID = 'price_1RsUN0BuVC83aaypNeDJGvLv' ;
-const ONE_TIME_PRICE_ID = 'price_1RsmEUBuVC83aaypZiU5WBYR';
+
+// bezpieczny klucz z .env.production
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+
+// ID cen ze Stripe (produkcyjne)
+const RECURRING_PRICE_ID = 'price_1SXSltB04sIrbcnlVFSpqfp3' ; // 199 PLN/mies.
+const ONE_TIME_PRICE_ID = 'price_1SXSnVB04sIrbcnlr5JhvxW0'; // 249 PLN/jednorazowo
 
 const AuthHeader = () => {
     const { currentUser, logout } = useAuth();
