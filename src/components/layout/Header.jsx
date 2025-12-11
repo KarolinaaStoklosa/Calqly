@@ -63,7 +63,7 @@ const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         
         {/* === LEWA STRONA (BEZ ZMIAN) === */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 lg:gap-4">
           <button
             onClick={toggleSidebar}
             className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 lg:hidden dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-50"
@@ -84,27 +84,27 @@ const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
         </div>
         <div className="flex items-center justify-between gap-4">
            {projectData && (
-            <div className="hidden sm:flex items-center gap-2 text-sm text-gray-500">
+            <div className="hidden md:flex items-center gap-2 text-sm text-gray-500">
               <ChevronRight className="w-4 h-4 text-gray-300" />
               <FileText className="w-4 h-4 text-gray-400" />
-              <span className="font-medium text-gray-700">{projectData.projectName || 'Nowy Projekt'}</span>
+              <span className="font-medium text-gray-700 max-w-[150px] truncate">{projectData.projectName || 'Nowy Projekt'}</span>
             </div>
           )}
           </div>
 
         {/* === PRAWA STRONA (PRZEBUDOWANA) === */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           
           {/* Grupa przycisków Edycji */}
           {currentUser && (
             <div className="flex items-center gap-2">
                 {!isEditMode ? (
-                    <button onClick={() => setIsEditMode(true)} className="flex items-center gap-2 bg-blue-100 text-blue-700 font-semibold py-2 px-4 rounded-lg hover:bg-blue-200 transition-colors text-sm">
+                    <button onClick={() => setIsEditMode(true)} className="flex items-center gap-2 bg-blue-100 text-blue-700 font-semibold px-2 py-2 md:px-4 rounded-lg hover:bg-blue-200 transition-colors text-sm">
                         <Edit size={16} /> <span>Tryb Edycji</span>
                     </button>
                 ) : (
                     <>
-                        <button onClick={handleCancelEdit} className="flex items-center gap-2 bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors text-sm">
+                        <button onClick={handleCancelEdit} className="flex items-center gap-2 bg-gray-200 text-gray-800 font-semibold px-2 py-2 md:px-4 rounded-lg hover:bg-gray-300 transition-colors text-sm">
                             <X size={16} /> <span>Anuluj</span>
                         </button>
                         <button onClick={saveDataToFirestore} disabled={isSaving} className="flex items-center gap-2 bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-sm disabled:bg-green-300">
@@ -118,7 +118,7 @@ const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
           
           {/* Separator */}
           {currentUser && (
-            <div className="h-8 border-l border-gray-200 dark:border-gray-700"></div>
+            <div className="hidden sm:block h-8 border-l border-gray-200 dark:border-gray-700"></div>
           )}
 
           {/* Grupa ikony Użytkownika */}
@@ -135,10 +135,10 @@ const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
                 {dropdownOpen && (
                   <div className="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800 dark:ring-gray-700">
                     <div className="py-1">
-                      <div className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200">
-                        <p className="font-semibold">Zalogowano jako</p>
-                        <p className="truncate">{currentUser.email}</p>
-                      </div>
+                      <div className="p-4 border-b border-gray-100">
+                      <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Zalogowano jako</p>
+                      <p className="text-sm font-semibold text-gray-900 truncate mt-1">{currentUser.email}</p>
+                    </div>
                        {/* <button
                         onClick={handleManageSubscription}
                         disabled={isPortalLoading}
@@ -170,7 +170,7 @@ const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
                 className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-50"
               >
                 <User className="h-5 w-5" />
-                <span className="sr-only">Zaloguj się</span>
+                <span className="hidden sm:inline sr-only">Zaloguj się</span>
               </button>
             )}
           </div>
