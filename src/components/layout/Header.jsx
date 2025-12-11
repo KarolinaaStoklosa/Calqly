@@ -109,7 +109,7 @@ const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
                         </button>
                         <button onClick={saveDataToFirestore} disabled={isSaving} className="flex items-center gap-2 bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-sm disabled:bg-green-300">
                             {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                            <span>{isSaving ? 'Zapisywanie...' : 'Zapisz Zmiany'}</span>
+                            <span>{isSaving ? 'Zapisywanie...' : 'Zapisz'}</span>
                         </button>
                     </>
                 )}
