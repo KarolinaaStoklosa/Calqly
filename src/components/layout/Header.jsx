@@ -73,11 +73,11 @@ const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
           </button>
           
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600">
+            <div className="hidden sm:block flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-600">
                 <Calculator className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-gray-900 dark:text-gray-50">Calqly</h1>
+              <h1 className="text-lg font-bold text-gray-900 dark:text-gray-50">Qalqly</h1>
               <p className="hidden text-xs text-gray-500 sm:block dark:text-gray-400">Kalkulator wycen</p>
             </div>
           </div>

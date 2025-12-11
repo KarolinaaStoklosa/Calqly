@@ -53,7 +53,7 @@ const WelcomeScreen = ({ setActiveTab, resetProject }) => {
         className="mt-8 flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
       >
         <FilePlus className="w-5 h-5 mr-2" />
-        Utwórz Pierwszy Projekt
+        Utwórz Projekt
       </button>
     </div>
   );

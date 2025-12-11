@@ -8,7 +8,7 @@ const Footer = () => {
     <footer className="w-full text-center p-6 text-xs text-gray-500">
       <div className="max-w-7xl mx-auto space-y-2">
         <p>
-          &copy; {currentYear} Calqly. Wszystkie prawa zastrzeżone. | Wersja {appVersion}
+          &copy; {currentYear} Qalqly. Wszystkie prawa zastrzeżone. | Wersja {appVersion}
         </p>
         <p className="italic">
           Aplikacja jest narzędziem wspomagającym. Użytkownik ponosi odpowiedzialność za weryfikację wycen.

@@ -1,6 +1,6 @@
 import React from 'react';
 import { 
-  Calculator, Archive, Book, // Zmienione ikony
+  Calculator, Archive, Book,
   Package, Eye, Move, Grip, RotateCcw, ArrowUp, 
   Package2, Square, Wrench, Plus, LifeBuoy, 
   FileInput, PieChart, X,
@@ -14,7 +14,6 @@ const Navigation = ({ activeTab, setActiveTab, isOpen, closeSidebar }) => {
   const { resetProject } = useProject();
   const appVersion = "1.0.0";
   
-  // ✅ ZMIANA: Uproszczona i zaktualizowana lista menu
   const menuItems = [
     { id: 'companySettings', label: 'Dane Firmy', icon: FileInput, category: 'project' },
     { id: 'projectSetup', label: 'Dane projektu', icon: FileInput, category: 'project' },
@@ -39,7 +38,6 @@ const Navigation = ({ activeTab, setActiveTab, isOpen, closeSidebar }) => {
     { id: 'separator-2', type: 'separator', label: 'ZARZĄDZANIE' },
     
     { id: 'archive', label: 'Archiwum', icon: Archive, category: 'storage' },
-    // Dodajemy nową pozycję
     { id: 'materials', label: 'Zarządzaj Materiałami', icon: Book, category: 'system' },
   ];
 
@@ -67,6 +65,7 @@ const Navigation = ({ activeTab, setActiveTab, isOpen, closeSidebar }) => {
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         
+        {/* Header Mobilny */}
         <div className="lg:hidden flex items-center justify-between p-4 border-b">
           <h2 className="text-lg font-semibold">Menu</h2>
           <button onClick={closeSidebar} className="p-2 rounded-lg hover:bg-gray-100">
@@ -74,6 +73,7 @@ const Navigation = ({ activeTab, setActiveTab, isOpen, closeSidebar }) => {
           </button>
         </div>
 
+        {/* Przycisk Nowy Projekt - pozostaje przypięty na górze dla szybkiego dostępu */}
         <div className="p-4">
           <button 
             onClick={handleNewProject}
@@ -85,7 +85,12 @@ const Navigation = ({ activeTab, setActiveTab, isOpen, closeSidebar }) => {
           </button>
         </div>
 
-        <div className="flex-grow px-4 overflow-y-auto">
+        {/* GŁÓWNY KONTENER SCROLLOWANIA 
+            Zawiera teraz zarówno listę menu, jak i sekcję Informacje/Stopkę.
+        */}
+        <div className="flex-grow px-4 overflow-y-auto pb-8"> {/* Dodano pb-8 dla oddechu na dole */}
+          
+          {/* Lista Menu */}
           <div className="space-y-1 pb-4">
             {menuItems.map((item) => {
               if (item.type === 'separator') {
@@ -124,32 +129,39 @@ const Navigation = ({ activeTab, setActiveTab, isOpen, closeSidebar }) => {
               );
             })}
           </div>
-        </div>
-        <div className="border-t p-4 space-y-4">
-          <div className="px-3 text-xs font-bold text-gray-400 uppercase tracking-wider">
-              INFORMACJE
-          </div>
-          <div className="space-y-1 text-sm">
-            <Link to="/regulamin" className="flex items-center p-2 rounded-lg text-gray-600 hover:bg-gray-100">
-              <FileText className="w-4 h-4 mr-3 text-gray-400" /> Regulamin
-            </Link>
-            <Link to="/polityka-prywatnosci" className="flex items-center p-2 rounded-lg text-gray-600 hover:bg-gray-100">
-              <Shield className="w-4 h-4 mr-3 text-gray-400" /> Polityka Prywatności
-            </Link>
-             <Link to="/disclaimer" className="flex items-center p-2 rounded-lg text-gray-600 hover:bg-gray-100">
-              <LifeBuoy className="w-4 h-4 mr-3 text-gray-400" /> Zastrzeżenia Prawne
-            </Link>
-          </div>
-          <div className="text-xs text-gray-500 space-y-2 pt-2 border-t mt-4">
-          <p className="font-bold text-gray-600">WOODLY GROUP</p>
-          <p>NIP: [NIP SPÓŁKI]</p>
-          <p>REGON: [REGON SPÓŁKI]</p>
-          <p>Adres: [ADRES SPÓŁKI], Nowy Wiśnicz</p>
-          <p>Kontakt: <a href="mailto:b.stoklosa@woodlygroup.pl" className="text-blue-600 hover:underline">b.stoklosa@woodlygroup.pl</a></p>
-          <p className="pt-2">&copy; {new Date().getFullYear()} Calqly. Wersja {appVersion}</p>
-        </div>
-      </div>
 
+          {/* SEKCJA INFORMACJE I STOPKA 
+              Przeniesiona tutaj, aby scrollować się razem z resztą.
+              Zmieniono p-4 na py-4, ponieważ kontener nadrzędny ma już px-4.
+          */}
+          <div className="border-t py-4 space-y-4 mt-2">
+            <div className="px-3 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                INFORMACJE
+            </div>
+            <div className="space-y-1 text-sm">
+              <Link to="/regulamin" className="flex items-center p-2 rounded-lg text-gray-600 hover:bg-gray-100">
+                <FileText className="w-4 h-4 mr-3 text-gray-400" /> Regulamin
+              </Link>
+              <Link to="/polityka-prywatnosci" className="flex items-center p-2 rounded-lg text-gray-600 hover:bg-gray-100">
+                <Shield className="w-4 h-4 mr-3 text-gray-400" /> Polityka Prywatności
+              </Link>
+               <Link to="/disclaimer" className="flex items-center p-2 rounded-lg text-gray-600 hover:bg-gray-100">
+                <LifeBuoy className="w-4 h-4 mr-3 text-gray-400" /> Zastrzeżenia Prawne
+              </Link>
+            </div>
+            
+            {/* Stopka firmy */}
+            <div className="text-xs text-gray-500 space-y-2 pt-2 border-t mt-4">
+              <p className="font-bold text-gray-600">WOODLY GROUP</p>
+              <p>NIP: 8682002241</p>
+              <p>REGON: 542994185</p>
+              <p>Adres: ul. Limanowska 28A, 32-720 Nowy Wiśnicz</p>
+              <p>Kontakt: <a href="mailto:b.stoklosa@woodlygroup.pl" className="text-blue-600 hover:underline">b.stoklosa@woodlygroup.pl</a></p>
+              <p className="pt-2">&copy; {new Date().getFullYear()} Qalqly. Wersja {appVersion}</p>
+            </div>
+          </div>
+
+        </div>
       </nav>
     </>
   );
