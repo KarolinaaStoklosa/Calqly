@@ -1,11 +1,13 @@
 import React from 'react';
 import { Download, Save, TrendingUp, Package, DollarSign, Calculator, Sparkles } from 'lucide-react';
 import { useProject } from '../../context/ProjectContext';
+import { useAuth } from '../../context/AuthContext';
 import { getDropdownOptions } from '../../data/dropdowns';
 import OfferButtons from '../ui/OfferButtons';
 
 const SummaryDashboard = () => {
-  const { projectData, calculations, settings, totals, saveProjectToArchive, exportToJson } = useProject();
+  const { settings: globalSettings } = useAuth();
+  const { projectData, calculations, settings: projectSettings, totals, saveProjectToArchive, exportToJson } = useProject();
 
   const formatPrice = (price = 0) => `${price.toFixed(2).replace('.', ',')} zł`;
   const formatSurface = (surface = 0) => `${surface.toFixed(2).replace('.', ',')} m²`;
@@ -66,7 +68,22 @@ const SummaryDashboard = () => {
     };
 
     return {
-        companyData: { name: settings.companyName, address: settings.companyAddress, city: settings.companyCity, nip: settings.companyNip, website: settings.companyWebsite, email: settings.companyEmail, phone: settings.companyPhone, logo: settings.logo, backgroundImage: settings.backgroundImage, warranty: settings.gwarancja, deliveryTime: settings.czasRealizacji, terms: (settings.warunki || []).map(item => item.text), exclusions: (settings.wykluczenia || []).map(item => item.text), },
+        companyData: { 
+            name: globalSettings?.companyName, 
+            address: globalSettings?.companyAddress, 
+            city: globalSettings?.companyCity, 
+            nip: globalSettings?.companyNip, 
+            website: globalSettings?.companyWebsite, 
+            email: globalSettings?.companyEmail, 
+            phone: globalSettings?.companyPhone, 
+            logo: globalSettings?.logo, 
+            backgroundImage: globalSettings?.backgroundImage, 
+            warranty: globalSettings?.gwarancja, 
+            deliveryTime: globalSettings?.czasRealizacji, 
+            // Konwertujemy obiekty {id, text} na listę samych tekstów dla PDF
+            terms: (globalSettings?.warunki || []).map(item => item.text), 
+            exclusions: (globalSettings?.wykluczenia || []).map(item => item.text), 
+        },
         clientData: projectData || {},
         totals: totals,
         summaryMetrics: summaryMetrics,
