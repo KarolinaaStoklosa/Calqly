@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }) => {
             // Jeśli jest data wygaśnięcia, ma ona priorytet
             if (expiresAt) {
                 if (new Date() < expiresAt) {
-                    finalStatus = 'active'; // Dostęp jest wciąż ważny
+                    finalStatus = subStatus;
                 } else {
                     finalStatus = 'inactive'; // Dostęp wygasł
                 }
