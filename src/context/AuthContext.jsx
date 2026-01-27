@@ -35,11 +35,18 @@ export const AuthProvider = ({ children }) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     const userRef = doc(db, 'users', user.uid);
+
+    const trialEndDate = new Date();
+    trialEndDate.setDate(trialEndDate.getDate() + 7);
     // Przy rejestracji tworzymy dokument z domyślnymi, pustymi ustawieniami
     await setDoc(userRef, {
       email: user.email,
       createdAt: new Date(),
-      subscription: { status: 'inactive' },
+      accessExpiresAt: trialEndDate, // Data wygaśnięcia dostępu
+      subscription: { 
+        status: 'trialing', // Status wskazujący na okres próbny
+        trial_end: trialEndDate // Pole używane przez BillingStatus.jsx
+      },
       settings: {} // Inicjalizujemy pusty obiekt ustawień
     });
     return userCredential;
@@ -52,9 +59,17 @@ export const AuthProvider = ({ children }) => {
     const userCredential = await signInWithPopup(auth, provider);
     const user = userCredential.user;
     const userRef = doc(db, 'users', user.uid);
+    const trialEndDate = new Date();
+    trialEndDate.setDate(trialEndDate.getDate() + 7);
+    
     await setDoc(userRef, {
         email: user.email,
         createdAt: new Date(),
+        accessExpiresAt: trialEndDate, // Data wygaśnięcia dostępu
+        subscription: { 
+          status: 'trialing', // Status wskazujący na okres próbny
+          trial_end: trialEndDate // Pole używane przez BillingStatus.jsx
+        },
     }, { merge: true });
     return userCredential;
   };

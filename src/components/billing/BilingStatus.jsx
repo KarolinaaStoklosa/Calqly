@@ -43,9 +43,16 @@ const BillingStatus = ({ variant = 'card' }) => {
             <p className={baseClasses.text}>
               Okres próbny aktywny do: <strong>{trial_end?.toDate().toLocaleDateString('pl-PL')}</strong>.
             </p>
-            <button onClick={handleManageSubscription} disabled={isPortalLoading} className={baseClasses.button}>
+
+            {!userData?.subscription?.id ? (
+              <button onClick={() => navigate('/subscribe')} className={baseClasses.button}>
+                Aktywuj pełny dostęp
+              </button>
+            ) : (
+              <button onClick={handleManageSubscription} disabled={isPortalLoading} className={baseClasses.button}>
               {isPortalLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Zarządzaj'}
-            </button>
+              </button>
+            )}
           </div>
         );
       
