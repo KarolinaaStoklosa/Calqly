@@ -128,6 +128,13 @@ const SubscriptionPage = () => {
         </div>
         {error && <p className="text-red-600 mt-4">{error}</p>}
       </div>
+      <div className="mt-8 text-center border-t pt-4">
+        <p className="text-xs text-gray-400">
+          Operatorem płatności i dostawcą usługi jest <strong>TREEO ART</strong>(właściciel marki Woodly Group).<br/>
+          Faktura VAT zostanie wystawiona przez podmiot: TREEO ART Bartłomiej Stokłosa, Sebastian Rzepecki S.C.,
+          ul. Limanowska 28A, Nowy Wiśnicz, NIP 868-198-75-13; 
+        </p>
+      </div>
     </div>
   );
 };

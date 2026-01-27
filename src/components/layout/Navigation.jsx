@@ -152,11 +152,16 @@ const Navigation = ({ activeTab, setActiveTab, isOpen, closeSidebar }) => {
             
             {/* Stopka firmy */}
             <div className="text-xs text-gray-500 space-y-2 pt-2 border-t mt-4">
-              <p className="font-bold text-gray-600">WOODLY GROUP</p>
-              <p>NIP: 8682002241</p>
-              <p>REGON: 542994185</p>
-              <p>Adres: ul. Limanowska 28A, 32-720 Nowy Wiśnicz</p>
-              <p>Kontakt: <a href="mailto:b.stoklosa@woodlygroup.pl" className="text-blue-600 hover:underline">b.stoklosa@woodlygroup.pl</a></p>
+              <p className="font-bold text-gray-700 text-sm">QALQLY APP</p>
+              <p className="text-[10px] uppercase tracking-wider text-blue-600 font-semibold">
+                by WOODLY GROUP
+              </p>
+              <div className="opacity-60 text-[10px] mt-2">
+                <p>Operator: TREEO ART</p>
+                <p>NIP:8681987513</p> {/* np. 8682002241 */}
+                <p>Adres: ul. Limanowska 28A, 32-720 Nowy Wiśnicz</p>
+                 <p>Kontakt: <a href="mailto:b.stoklosa@woodlygroup.pl" className="text-blue-600 hover:underline">b.stoklosa@woodlygroup.pl</a></p>
+              </div>
               <p className="pt-2">&copy; {new Date().getFullYear()} Qalqly. Wersja {appVersion}</p>
             </div>
           </div>
