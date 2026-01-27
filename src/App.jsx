@@ -31,7 +31,8 @@ import { TermsContent, PrivacyPolicyContent, DisclaimerContent } from './data/le
 import CookieConsentBanner from './components/layout/CookieConsentBanner'; 
 import Footer from './components/layout/Footer';
 
-const WelcomeScreen = ({ setActiveTab, resetProject }) => {
+const WelcomeScreen = ({ setActiveTab }) => {
+  const { resetProject } = useProject();
   const handleCreateFirstProject = () => {
     resetProject();
     setActiveTab('projectSetup');
