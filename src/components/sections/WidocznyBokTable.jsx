@@ -9,7 +9,7 @@ const WidocznyBokTable = () => {
   const { calculateWidocznyBok, formatPrice, formatSurface } = useCalculator();
   const { materials } = useMaterials();
   const frontyOptions = materials.fronty || [];
-  const okleinaOptions = materials.okleina || [].filter(o => o.kategoria === 'material');
+  const okleinaOptions = (materials.okleina || []).filter(o => o.kategoria === 'material');
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleAddWidocznyBok = () => {
@@ -94,7 +94,8 @@ const WidocznyBokTable = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          {widoczneBoki.map((bok, index) => <WidocznyBokCard key={bok.id} bok={bok} index={index} onUpdate={handleUpdateWidocznyBok} onRemove={handleRemoveWidocznyBok} showAdvanced={showAdvanced} frontyOptions={frontyOptions} okleinaOptions={okleinaOptions} formatPrice={formatPrice} formatSurface={formatSurface} />)}
+          {widoczneBoki.map((bok, index) => <WidocznyBokCard key={bok.id} bok={bok} index={index} onUpdate={handleUpdateWidocznyBok} onRemove={handleRemoveWidocznyBok} showAdvanced={showAdvanced} frontyOptions={frontyOptions} 
+          okleinaOptions={okleinaOptions} formatPrice={formatPrice} formatSurface={formatSurface} />)}
         </div>
       )}
       
