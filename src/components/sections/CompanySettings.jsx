@@ -7,7 +7,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Building, Link, Edit3, Image, Plus, Trash2, Loader2, Save, X, Edit } from 'lucide-react';
 
 const CompanySettings = () => {
-  const { settings, updateSettings } = useProject();
+  const { settings, updateSettings } = useAuth();
   const { currentUser } = useAuth();
   
   // ✅ 1. Wprowadzamy stan do zarządzania trybem edycji

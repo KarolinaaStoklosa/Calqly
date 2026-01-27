@@ -10,6 +10,7 @@ import {
 } from 'firebase/auth';
 import { getFirestore, doc, onSnapshot, setDoc } from 'firebase/firestore';
 import app from '../firebase/config';
+import { DEFAULT_COMPANY_SETTINGS } from '../data/companyDefaults';
 
 const AuthContext = createContext();
 
@@ -102,7 +103,12 @@ export const AuthProvider = ({ children }) => {
             }
             
             setSubscriptionStatus(finalStatus);
-            setSettings(data.settings || {});
+            const mergedSettings = {
+              ...DEFAULT_COMPANY_SETTINGS,
+              ...(data.settings || {})
+            };
+            
+            setSettings(mergedSettings);
           } else {
             // Użytkownik jest w Auth, ale nie ma go w Firestore - tworzymy dokument
              setDoc(userRef, {
@@ -113,11 +119,11 @@ export const AuthProvider = ({ children }) => {
             });
             setSubscriptionStatus('inactive');
             
-            setSettings({});
+           setSettings(DEFAULT_COMPANY_SETTINGS);
           }
           setLoading(false);
         }, (error) => {
-          console.error("Błąd nasłuchiwania na profil użytkownika:", error);
+
           setLoading(false);
         });
         return () => unsubscribeProfile(); 

@@ -32,15 +32,6 @@ const defaultSettings = {
     { id: 1, name: 'PARTNER', percentage: 10, active: true },
     { id: 2, name: 'KLIENT', percentage: 2, active: true }
   ],
-  warunki: [
-    { id: 1, text: 'Cena zawiera wszystkie materiały i wykonanie' },
-    { id: 2, text: 'Montaż w cenie' },
-    { id: 3, text: 'Wycena ważna 21 dni' },
-  ],
-  wykluczenia: [
-    { id: 1, text: 'Podłączeń sprzętów powyżej 230 V (w tym płyta grzewcza)' },
-    { id: 2, text: 'Podłączeń hydraulicznych (syfon, bateria, zawory)' },
-  ],
 };
 
 export const ProjectProvider = ({ children }) => {
