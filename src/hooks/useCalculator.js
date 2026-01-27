@@ -10,6 +10,14 @@ export const useCalculator = () => {
     return item ? item.cena : 0;
   };
 
+  const getFullEdgeRate = (edgeName) => {
+    if (!edgeName || edgeName === '-- BRAK OKLEINY --') return 0;
+    const basePrice = getItemPrice('okleina', edgeName);
+    const cuttingCost = getItemPrice('okleina', 'KOSZT CIĘCIA');
+    const bandingCost = getItemPrice('okleina', 'KOSZT OKLEJANIA');
+    return basePrice + cuttingCost + bandingCost;
+  };
+
   const parseNum = (value) => parseFloat(value) || 0;
   const formatPrice = (price) => (typeof price === 'number' ? price.toFixed(2) : '0.00');
   const formatSurface = (surface) => (typeof surface === 'number' ? surface.toFixed(4) : '0.0000');
@@ -49,8 +57,8 @@ export const useCalculator = () => {
     const okleinaKorpusMetry_jedna = ((2 * wys) + (2 * szer) + (półki * szer)) / 1000;
     const okleinaFrontMetry_jedna = korpus.okleinaFront && korpus.okleinaFront !== '-- BRAK OKLEINY --' ? ((2 * podziałFrontu * szer) + (2 * wys)) / 1000 : 0;
     const cenaPlytaFront = korpus.plytyFront === '<< JAK PŁYTA KORPUS' ? cenaPlytaKorpus : getItemPrice('fronty', korpus.plytyFront);
-    const cenaOkleinaKorpusZaMetr = getItemPrice('okleina', korpus.okleina);
-    const cenaOkleinaFrontZaMetr = getItemPrice('okleina', korpus.okleinaFront);
+    const cenaOkleinaKorpusZaMetr = getFullEdgeRate(korpus.okleina);
+    const cenaOkleinaFrontZaMetr = getFullEdgeRate(korpus.okleinaFront);
 
     const cenaKorpus_jedna = powierzchniaKorpus_jedna * cenaPlytaKorpus;
     const cenaPółki_jedna = powierzchniaPółek_jedna * cenaPlytaKorpus;
@@ -127,7 +135,7 @@ export const useCalculator = () => {
       : 0;
 
     // ✅ NOWOŚĆ: Pobieranie ceny i obliczanie kosztu okleiny
-    const cenaOkleinaZaMetr = getItemPrice('okleina', bok.okleina);
+    const cenaOkleinaZaMetr = getFullEdgeRate(bok.okleina);
     const cenaOkleina = okleinaMetry * cenaOkleinaZaMetr;
     
     // ✅ ZMIANA: Zaktualizowana cena całkowita

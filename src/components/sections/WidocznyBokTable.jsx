@@ -9,7 +9,7 @@ const WidocznyBokTable = () => {
   const { calculateWidocznyBok, formatPrice, formatSurface } = useCalculator();
   const { materials } = useMaterials();
   const frontyOptions = materials.fronty || [];
-  const okleinaOptions = materials.okleina || [];
+  const okleinaOptions = materials.okleina || [].filter(o => o.kategoria === 'material');
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleAddWidocznyBok = () => {

@@ -29,10 +29,20 @@ export const DROPDOWN_DATA = {
   ],
 
   // 🎨 OKLEINA (dane z Excel kolumna I-J)
+  // okleina: [
+  //   { nazwa: "CIENKA", cena: 5.35, opis: "Okleina cienka - standardowa" },
+  //   { nazwa: "GRUBA", cena: 9.05, opis: "Okleina gruba - wzmocniona" },
+  //   { nazwa: "--BRAK OKLEINY--", cena: 0.00, opis: "Bez okleiny" }
+  // ],
   okleina: [
-    { nazwa: "CIENKA", cena: 5.35, opis: "Okleina cienka - standardowa" },
-    { nazwa: "GRUBA", cena: 9.05, opis: "Okleina gruba - wzmocniona" },
-    { nazwa: "--BRAK OKLEINY--", cena: 0.00, opis: "Bez okleiny" }
+    // BAZA MATERIAŁOWA (Tylko cena taśmy za mb)
+    { nazwa: "-- BRAK OKLEINY --", cena: 0.00, kategoria: "material" },
+    { nazwa: "CIENKA 0.8mm", cena: 1.09, kategoria: "material", opis: "Okleina cienka" },
+    { nazwa: "GRUBA 2.0mm", cena: 6.01, kategoria: "material", opis: "Okleina gruba" },
+  
+  // USLUGI - Te będą ukryte w dropdownach, ale użyte do obliczeń
+    { nazwa: "KOSZT CIĘCIA", cena: 1.70, kategoria: "usluga" },
+    { nazwa: "KOSZT OKLEJANIA", cena: 2.80, kategoria: "usluga" }
   ],
 
   // 🚪 FRONTY (dane z Excel kolumna L-N)

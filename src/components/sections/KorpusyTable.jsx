@@ -13,7 +13,7 @@ const KorpusyTable = () => {
   const { materials } = useMaterials();
   const plytyKorpusOptions = materials.plytyMeblowe || [];
   const plytyFrontOptions = materials.fronty || [];
-  const okleinaOptions = materials.okleina || [];
+  const okleinaOptions = (materials.okleina || []).filter(o => o.kategoria === 'material');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [animationKey, setAnimationKey] = useState(0);
   const { isEditMode } = useProject();
@@ -248,7 +248,8 @@ const KorpusCard = ({ korpus, index, onUpdate, onRemove, isEditMode, showAdvance
               </div>
               <div>
                 <label className="text-[10px] font-bold text-gray-400 uppercase">Okleina Korpus</label>
-                <select value={korpus.okleina} onChange={(e) => onUpdate(korpus.id, 'okleina', e.target.value)} disabled={!isEditMode} className="w-full p-2 bg-white border rounded-lg text-sm">{okleinaOptions.map((o, i) => <option key={i} value={o.nazwa}>{o.nazwa}</option>)}</select>
+                <select value={korpus.okleina} onChange={(e) => onUpdate(korpus.id, 'okleina', e.target.value)} disabled={!isEditMode} className="w-full p-2 bg-white border rounded-lg text-sm">
+                  {okleinaOptions.map((o, i) => <option key={i} value={o.nazwa}>{o.nazwa}</option>)}</select>
               </div>
             </div>
             <div className="space-y-3">
