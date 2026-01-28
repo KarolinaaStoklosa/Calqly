@@ -3,6 +3,7 @@ import { Plus, Trash2, TrendingUp, Package2, ListFilter } from 'lucide-react';
 import { useProjectSection, useProject } from '../../context/ProjectContext';
 import { useCalculator } from '../../hooks/useCalculator';
 import { useMaterials } from '../../context/MaterialContext';
+import MaterialSelector from '../ui/MaterialSelector';
 
 const SzufladyTable = () => {
   const { isEditMode } = useProject();
@@ -13,7 +14,9 @@ const SzufladyTable = () => {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleAddSzuflada = () => {
-    const newSzuflada = { rodzaj: szufladyOptions[0]?.nazwa || '', ilość: '1', cenaJednostkowa: 0, cenaCałość: 0 };
+    // Domyślna wartość
+    const defaultName = szufladyOptions.length > 0 ? szufladyOptions[0].nazwa : '';
+    const newSzuflada = { rodzaj: defaultName, ilość: '1', cenaJednostkowa: 0, cenaCałość: 0 };
     addItem(newSzuflada);
   };
   
@@ -142,9 +145,10 @@ const SzufladyTable = () => {
 
 // === ZMODYFIKOWANA KARTA (MOBILE-FIRST GRID) ===
 const SzufladaCard = ({ szuflada, index, onUpdate, onRemove, showAdvanced, szufladyOptions, formatPrice, isEditMode }) => (
-    <div className="group bg-white/80 backdrop-blur-xl rounded-xl border border-white/20 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+    // 👇 CSS FIX: overflow-hidden -> relative z-0 hover:z-10
+    <div className="group bg-white/80 backdrop-blur-xl rounded-xl border border-white/20 shadow-sm hover:shadow-md transition-all duration-300 relative z-0 hover:z-10">
         <div className="p-4">
-            {/* GRID LAYOUT: Zmienia się z 12 kolumn (Mobile) na Flex Row (Desktop) */}
+            {/* GRID LAYOUT */}
             <div className="grid grid-cols-12 gap-y-4 gap-x-3 md:flex md:items-center md:gap-6">
                 
                 {/* 1. SEKCJA GŁÓWNA: Numer + System (Cała szerokość na mobile) */}
@@ -159,16 +163,14 @@ const SzufladaCard = ({ szuflada, index, onUpdate, onRemove, showAdvanced, szufl
                         <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 md:hidden">
                             System / Rodzaj
                         </label>
-                        <select 
+                        {/* ✅ NOWY SELEKTOR */}
+                        <MaterialSelector 
+                            category="szuflady" 
                             value={szuflada.rodzaj} 
-                            onChange={(e) => onUpdate(szuflada.id, 'rodzaj', e.target.value)} 
+                            onChange={(val) => onUpdate(szuflada.id, 'rodzaj', val)} 
+                            placeholder="Wybierz system..."
                             disabled={!isEditMode} 
-                            className="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all disabled:bg-gray-100 disabled:text-gray-500"
-                        >
-                            {szufladyOptions.map((option, idx) => (
-                                <option key={idx} value={option.nazwa}>{option.nazwa}</option>
-                            ))}
-                        </select>
+                        />
                     </div>
                 </div>
 

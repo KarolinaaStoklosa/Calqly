@@ -3,6 +3,7 @@ import { Plus, Trash2, TrendingUp, ArrowUp } from 'lucide-react';
 import { useProjectSection, useProject } from '../../context/ProjectContext';
 import { useCalculator } from '../../hooks/useCalculator';
 import { useMaterials } from '../../context/MaterialContext';
+import MaterialSelector from '../ui/MaterialSelector';
 
 const PodnosnikiTable = () => {
   const { isEditMode } = useProject();
@@ -13,7 +14,9 @@ const PodnosnikiTable = () => {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleAddPodnosnik = () => {
-    const newPodnosnik = { rodzaj: podnosnikiOptions[0]?.nazwa || '', ilość: '1', cenaJednostkowa: 0, cenaCałość: 0 };
+    // Domyślna wartość
+    const defaultName = podnosnikiOptions.length > 0 ? podnosnikiOptions[0].nazwa : '';
+    const newPodnosnik = { rodzaj: defaultName, ilość: '1', cenaJednostkowa: 0, cenaCałość: 0 };
     addItem(newPodnosnik);
   };
   const handleUpdatePodnosnik = (id, field, value) => updateItem(id, { [field]: value });
@@ -116,7 +119,8 @@ const PodnosnikiTable = () => {
 };
 
 const PodnosnikCard = ({ podnosnik, index, onUpdate, onRemove, showAdvanced, podnosnikiOptions, formatPrice, isEditMode }) => (
-    <div className="group bg-white/80 backdrop-blur-xl rounded-xl border border-white/20 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+    // ✅ 3. CSS FIX: overflow-hidden -> relative z-0 hover:z-10
+    <div className="group bg-white/80 backdrop-blur-xl rounded-xl border border-white/20 shadow-sm hover:shadow-md transition-all duration-300 relative z-0 hover:z-10">
         <div className="p-4">
             {/* Responsive Grid */}
             <div className="grid grid-cols-12 gap-y-3 gap-x-3 md:flex md:items-center md:gap-6">
@@ -128,9 +132,14 @@ const PodnosnikCard = ({ podnosnik, index, onUpdate, onRemove, showAdvanced, pod
                     </div>
                     <div className="flex-1 min-w-0">
                         <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 md:hidden">Rodzaj podnośnika</label>
-                        <select value={podnosnik.rodzaj} onChange={(e) => onUpdate(podnosnik.id, 'rodzaj', e.target.value)} disabled={!isEditMode} className="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-rose-500 focus:border-transparent transition-all disabled:bg-gray-100">
-                            {podnosnikiOptions.map((option, idx) => (<option key={idx} value={option.nazwa}>{option.nazwa}</option>))}
-                        </select>
+                        {/* ✅ 2. MaterialSelector */}
+                        <MaterialSelector 
+                            category="podnosniki" 
+                            value={podnosnik.rodzaj} 
+                            onChange={(val) => onUpdate(podnosnik.id, 'rodzaj', val)} 
+                            placeholder="Wybierz podnośnik..."
+                            disabled={!isEditMode} 
+                        />
                     </div>
                 </div>
                 

@@ -3,6 +3,7 @@ import { Plus, Trash2, TrendingUp, Grip } from 'lucide-react';
 import { useProjectSection, useProject } from '../../context/ProjectContext';
 import { useCalculator } from '../../hooks/useCalculator';
 import { useMaterials } from '../../context/MaterialContext';
+import MaterialSelector from '../ui/MaterialSelector';
 
 const UchwytyTable = () => {
   const { isEditMode } = useProject();
@@ -13,7 +14,9 @@ const UchwytyTable = () => {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleAddUchwyt = () => {
-    const newUchwyt = { rodzaj: uchwytyOptions[0]?.nazwa || '', ilość: '1', cenaJednostkowa: 0, cenaCałość: 0 };
+    // Domyślna wartość
+    const defaultName = uchwytyOptions.length > 0 ? uchwytyOptions[0].nazwa : '';
+    const newUchwyt = { rodzaj: defaultName, ilość: '1', cenaJednostkowa: 0, cenaCałość: 0 };
     addItem(newUchwyt);
   };
   const handleUpdateUchwyt = (id, field, value) => updateItem(id, { [field]: value });
@@ -116,9 +119,10 @@ const UchwytyTable = () => {
 };
 
 const UchwytCard = ({ uchwyt, index, onUpdate, onRemove, showAdvanced, uchwytyOptions, formatPrice, isEditMode }) => (
-    <div className="group bg-white/80 backdrop-blur-xl rounded-xl border border-white/20 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+    // 👇 CSS FIX: overflow-hidden usunięte, relative z-index dodany
+    <div className="group bg-white/80 backdrop-blur-xl rounded-xl border border-white/20 shadow-sm hover:shadow-md transition-all duration-300 relative z-0 hover:z-10">
         <div className="p-4">
-             {/* Responsive Grid: 12 Cols (Mobile) -> Flex (Desktop) */}
+             {/* Responsive Grid */}
             <div className="grid grid-cols-12 gap-y-3 gap-x-3 md:flex md:items-center md:gap-6">
                 
                 {/* 1. Main Info */}
@@ -128,9 +132,14 @@ const UchwytCard = ({ uchwyt, index, onUpdate, onRemove, showAdvanced, uchwytyOp
                     </div>
                     <div className="flex-1 min-w-0">
                         <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 md:hidden">Rodzaj uchwytu</label>
-                        <select value={uchwyt.rodzaj} onChange={(e) => onUpdate(uchwyt.id, 'rodzaj', e.target.value)} disabled={!isEditMode} className="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:bg-gray-100">
-                            {uchwytyOptions.map((option, idx) => (<option key={idx} value={option.nazwa}>{option.nazwa}</option>))}
-                        </select>
+                        {/* ✅ NOWY SELEKTOR */}
+                        <MaterialSelector 
+                            category="uchwyty" 
+                            value={uchwyt.rodzaj} 
+                            onChange={(val) => onUpdate(uchwyt.id, 'rodzaj', val)} 
+                            placeholder="Wybierz uchwyt..."
+                            disabled={!isEditMode} 
+                        />
                     </div>
                 </div>
 

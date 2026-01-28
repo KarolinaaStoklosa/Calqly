@@ -14,7 +14,9 @@ const AkcesoriaTable = () => {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleAddAkcesorium = () => {
-    const newAkcesorium = { rodzaj: akcesoriaOptions[0]?.nazwa || '', ilość: '1', cenaJednostkowa: 0, cenaCałość: 0 };
+    // Domyślna wartość (pierwsza z listy lub pusta)
+    const defaultName = akcesoriaOptions.length > 0 ? akcesoriaOptions[0].nazwa : '';
+    const newAkcesorium = { rodzaj: defaultName, ilość: '1', cenaJednostkowa: 0, cenaCałość: 0 };
     addItem(newAkcesorium);
   };
   const handleUpdateAkcesorium = (id, field, value) => updateItem(id, { [field]: value });
@@ -117,7 +119,8 @@ const AkcesoriaTable = () => {
 };
 
 const AkcesoriumCard = ({ akcesorium, index, onUpdate, onRemove, showAdvanced, akcesoriaOptions, formatPrice, isEditMode }) => (
-    <div className="group bg-white/80 backdrop-blur-xl rounded-xl border border-white/20 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+    // 👇 USUNIĘCIE OVERFLOW-HIDDEN, DODANIE RELATIVE Z-INDEX
+    <div className="group bg-white/80 backdrop-blur-xl rounded-xl border border-white/20 shadow-sm hover:shadow-md transition-all duration-300 relative z-0 hover:z-10">
         <div className="p-4">
             {/* Responsive Grid */}
             <div className="grid grid-cols-12 gap-y-3 gap-x-3 md:flex md:items-center md:gap-6">
@@ -129,14 +132,13 @@ const AkcesoriumCard = ({ akcesorium, index, onUpdate, onRemove, showAdvanced, a
                     </div>
                     <div className="flex-1 min-w-0">
                         <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 md:hidden">Rodzaj akcesorium</label>
-                        {/* <select value={akcesorium.rodzaj} onChange={(e) => onUpdate(akcesorium.id, 'rodzaj', e.target.value)} disabled={!isEditMode} className="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-gray-100">
-                            {akcesoriaOptions.map((option, idx) => (<option key={idx} value={option.nazwa}>{option.nazwa}</option>))}
-                        </select> */}
+                        {/* ✅ PODMIENIONY SELECT NA MaterialSelector */}
                         <MaterialSelector 
-                            category="akcesoria" 
+                            category="akcesoria"
                             value={akcesorium.rodzaj}
-                            onChange={(value) => onUpdate(akcesorium.id, 'rodzaj', value)}
-                            disabled={!isEditMode} 
+                            onChange={(val) => onUpdate(akcesorium.id, 'rodzaj', val)}
+                            placeholder="Wyszukaj akcesorium..."
+                            disabled={!isEditMode}
                         />
                     </div>
                 </div>

@@ -1,9 +1,9 @@
-// === Przykładowy kod dla BlatyTable.jsx (zastosuj analogicznie do reszty prostych tabel) ===
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, TrendingUp, Square } from 'lucide-react';
 import { useProjectSection, useProject } from '../../context/ProjectContext';
 import { useCalculator } from '../../hooks/useCalculator';
 import { useMaterials } from '../../context/MaterialContext';
+import MaterialSelector from '../ui/MaterialSelector';
 
 const BlatyTable = () => {
   const { isEditMode } = useProject();
@@ -14,7 +14,9 @@ const BlatyTable = () => {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleAddBlat = () => {
-    const newBlat = { rodzaj: blatyOptions[0]?.nazwa || '', ilość: '1', cenaJednostkowa: 0, cenaCałość: 0 };
+    // Domyślna wartość
+    const defaultName = blatyOptions.length > 0 ? blatyOptions[0].nazwa : '';
+    const newBlat = { rodzaj: defaultName, ilość: '1', cenaJednostkowa: 0, cenaCałość: 0 };
     addItem(newBlat);
   };
   const handleUpdateBlat = (id, field, value) => updateItem(id, { [field]: value });
@@ -32,7 +34,7 @@ const BlatyTable = () => {
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 p-4 md:p-6 pb-24">
-      {/* HEADER i KPI (bez zmian w logice, tylko stylowanie) */}
+      {/* HEADER i KPI */}
       <div className="relative overflow-hidden bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 rounded-2xl p-4 mb-4 shadow-lg">
         <div className="relative z-10 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -84,36 +86,35 @@ const BlatyTable = () => {
   );
 };
 
-// === UNIWERSALNA KARTA (ZASTOSUJ JĄ W: Blaty, Uchwyty, Zawiasy, Drzwi, Akcesoria, Podnosniki) ===
-// Wystarczy zmienić nazwy zmiennych (np. blat -> uchwyt)
+// === KARTA BLATU ===
 const BlatCard = ({ blat, index, onUpdate, onRemove, showAdvanced, blatyOptions, formatPrice, isEditMode }) => (
-    <div className="group bg-white/80 backdrop-blur-xl rounded-xl border border-white/20 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+    // ✅ 3. CSS FIX: Usunięte overflow-hidden, dodane relative i z-index na hover
+    <div className="group bg-white/80 backdrop-blur-xl rounded-xl border border-white/20 shadow-sm hover:shadow-md transition-all duration-300 relative z-0 hover:z-10">
         <div className="p-4">
-            {/* GRID SYSTEM: 12 kolumn na mobile -> Flex na Desktop */}
             <div className="grid grid-cols-12 gap-y-3 gap-x-3 md:flex md:items-center md:gap-6">
                 
-                {/* 1. SEKCJA GŁÓWNA (100% szerokości na mobile) */}
+                {/* 1. SEKCJA GŁÓWNA */}
                 <div className="col-span-12 md:flex-1 flex items-center gap-3">
                     <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-amber-500 to-orange-500 rounded-lg flex items-center justify-center text-white font-bold flex-shrink-0 text-sm md:text-base">
                         {index + 1}
                     </div>
                     <div className="flex-1 min-w-0">
                         <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 md:hidden">Rodzaj / Usługa</label>
-                        <select 
-                            value={blat.rodzaj} 
-                            onChange={(e) => onUpdate(blat.id, 'rodzaj', e.target.value)} 
-                            disabled={!isEditMode} 
-                            className="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all"
-                        >
-                            {blatyOptions.map((option, idx) => (<option key={idx} value={option.nazwa}>{option.nazwa}</option>))}
-                        </select>
+                        {/* ✅ 2. MATERIAL SELECTOR */}
+                        <MaterialSelector 
+                            category="blaty"
+                            value={blat.rodzaj}
+                            onChange={(val) => onUpdate(blat.id, 'rodzaj', val)}
+                            placeholder="Wybierz blat lub usługę..."
+                            disabled={!isEditMode}
+                        />
                     </div>
                 </div>
 
-                {/* 2. ILOŚĆ (Mała sekcja) */}
+                {/* 2. ILOŚĆ */}
                 <div className="col-span-4 md:w-24">
-                     <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 md:hidden">Ilość</label>
-                     <div className="relative">
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 md:hidden">Ilość</label>
+                      <div className="relative">
                         <input 
                             type="number" 
                             value={blat.ilość} 
@@ -123,12 +124,12 @@ const BlatCard = ({ blat, index, onUpdate, onRemove, showAdvanced, blatyOptions,
                             placeholder="1" 
                             min="1" 
                         />
-                     </div>
+                      </div>
                 </div>
 
-                {/* 3. CENA I USUWANIE (Prawa strona) */}
+                {/* 3. CENA I USUWANIE */}
                 <div className="col-span-8 md:w-auto flex items-center justify-end gap-3 md:gap-4 pl-2 border-l border-gray-100 md:border-0 md:pl-0">
-                     <div className="text-right">
+                      <div className="text-right">
                         <div className="text-lg font-bold text-gray-900">{formatPrice(blat.cenaCałość)} <span className="text-xs font-normal text-gray-500">zł</span></div>
                         {(showAdvanced || window.innerWidth < 768) && (
                            <div className="text-[10px] text-gray-400">{formatPrice(blat.cenaJednostkowa)} zł/szt</div>

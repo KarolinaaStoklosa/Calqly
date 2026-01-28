@@ -161,8 +161,10 @@ const KorpusCard = ({ korpus, index, onUpdate, onRemove, isEditMode, showAdvance
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="group bg-white/80 backdrop-blur-xl rounded-xl border border-white/20 shadow-sm hover:shadow-md transition-all duration-300">
-      {/* HEADER KARTY - GRID SYSTEM */}
+   <div 
+    className={`group bg-white/80 backdrop-blur-xl rounded-xl border border-white/20 shadow-sm hover:shadow-md transition-all duration-300 
+    ${isExpanded ? 'relative z-50' : 'relative z-0'}`} 
+  >{/* HEADER KARTY - GRID SYSTEM */}
       <div className="p-4 border-b border-gray-100">
         <div className="grid grid-cols-12 gap-3 md:flex md:items-center md:justify-between">
             

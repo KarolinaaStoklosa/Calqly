@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Calculator, Eye, EyeOff, TrendingUp, Layers, ChevronDown, ChevronUp } from 'lucide-react';
-import { useProjectSection } from '../../context/ProjectContext';
+import { useProjectSection, useProject } from '../../context/ProjectContext';
 import { useCalculator } from '../../hooks/useCalculator';
 import { useMaterials } from '../../context/MaterialContext';
+import MaterialSelector from '../ui/MaterialSelector';
 
 const WidocznyBokTable = () => {
   const { items: widoczneBoki, addItem, updateItem, removeItem, total } = useProjectSection('widocznyBok');
@@ -115,7 +116,8 @@ const WidocznyBokCard = ({ bok, index, onUpdate, onRemove, showAdvanced, frontyO
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="group bg-white/80 backdrop-blur-xl rounded-xl border border-white/20 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+    // 👇 CSS FIX: overflow-hidden usunięte, relative z-index dodany
+    <div className={`group bg-white/80 backdrop-blur-xl rounded-xl border border-white/20 shadow-sm hover:shadow-md transition-all duration-300 relative ${isExpanded ? 'z-50' : 'z-0'}`}>
       <div className="p-4 border-b border-gray-100">
         
         {/* GRID LAYOUT FOR HEADER */}
@@ -158,14 +160,24 @@ const WidocznyBokCard = ({ bok, index, onUpdate, onRemove, showAdvanced, frontyO
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Materiał</label>
-                    <select value={bok.rodzaj} onChange={(e) => onUpdate(bok.id, 'rodzaj', e.target.value)} className="w-full p-2 bg-white border rounded-lg text-sm">{frontyOptions.map((o, i) => <option key={i} value={o.nazwa}>{o.nazwa}</option>)}</select>
+                    {/* ✅ MATERIAŁ (FRONTY) */}
+                    <MaterialSelector 
+                        category="fronty" 
+                        value={bok.rodzaj} 
+                        onChange={(val) => onUpdate(bok.id, 'rodzaj', val)} 
+                        placeholder="Wybierz płytę/front..."
+                    />
                 </div>
                 <div>
                     <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Okleina</label>
-                    <select value={bok.okleina || '-- BRAK OKLEINY --'} onChange={(e) => onUpdate(bok.id, 'okleina', e.target.value)} className="w-full p-2 bg-white border rounded-lg text-sm">
-                        <option value="-- BRAK OKLEINY --">-- BRAK OKLEINY --</option>
-                        {okleinaOptions.map((o, i) => <option key={i} value={o.nazwa}>{o.nazwa}</option>)}
-                    </select>
+                    {/* ✅ OKLEINA (Z FILTREM) */}
+                    <MaterialSelector 
+                        category="okleina" 
+                        value={bok.okleina} 
+                        onChange={(val) => onUpdate(bok.id, 'okleina', val)} 
+                        placeholder="Wybierz okleinę..."
+                        filterFn={(item) => item.kategoria === 'material'} // Ukrywamy usługi
+                    />
                 </div>
             </div>
             {/* INPUTY WYMIARÓW - GRID */}

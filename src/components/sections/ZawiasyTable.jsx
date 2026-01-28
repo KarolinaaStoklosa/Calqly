@@ -3,6 +3,7 @@ import { Plus, Trash2, TrendingUp, RotateCcw } from 'lucide-react';
 import { useProjectSection, useProject } from '../../context/ProjectContext';
 import { useMaterials } from '../../context/MaterialContext';
 import { useCalculator } from '../../hooks/useCalculator';
+import MaterialSelector from '../ui/MaterialSelector';
 
 const ZawiasyTable = () => {
   const { isEditMode } = useProject();
@@ -13,7 +14,9 @@ const ZawiasyTable = () => {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const handleAddZawias = () => {
-    const newZawias = { rodzaj: zawiasyOptions[0]?.nazwa || '', ilość: '2', cenaJednostkowa: 0, cenaCałość: 0 };
+    // Domyślna wartość
+    const defaultName = zawiasyOptions.length > 0 ? zawiasyOptions[0].nazwa : '';
+    const newZawias = { rodzaj: defaultName, ilość: '2', cenaJednostkowa: 0, cenaCałość: 0 };
     addItem(newZawias);
   };
   const handleUpdateZawias = (id, field, value) => updateItem(id, { [field]: value });
@@ -53,18 +56,18 @@ const ZawiasyTable = () => {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-white/70 backdrop-blur-xl rounded-xl p-4 border border-white/20 shadow-md">
-            <div className="flex items-center gap-2 mb-1">
-                <RotateCcw className="w-4 h-4 text-cyan-600" />
-                <span className="font-bold text-xs text-gray-500 uppercase">Ilość</span>
-            </div>
-            <div className="text-xl font-bold text-gray-900">{totalQuantity}</div>
+          <div className="flex items-center gap-2 mb-1">
+            <RotateCcw className="w-4 h-4 text-cyan-600" />
+            <span className="font-bold text-xs text-gray-500 uppercase">Ilość</span>
+          </div>
+          <div className="text-xl font-bold text-gray-900">{totalQuantity}</div>
         </div>
         <div className="bg-white/70 backdrop-blur-xl rounded-xl p-4 border border-white/20 shadow-md">
-            <div className="flex items-center gap-2 mb-1">
-                <TrendingUp className="w-4 h-4 text-green-600" />
-                <span className="font-bold text-xs text-gray-500 uppercase">Wartość</span>
-            </div>
-            <div className="text-xl font-bold text-gray-900">{formatPrice(total)} zł</div>
+          <div className="flex items-center gap-2 mb-1">
+            <TrendingUp className="w-4 h-4 text-green-600" />
+            <span className="font-bold text-xs text-gray-500 uppercase">Wartość</span>
+          </div>
+          <div className="text-xl font-bold text-gray-900">{formatPrice(total)} zł</div>
         </div>
       </div>
       
@@ -116,7 +119,8 @@ const ZawiasyTable = () => {
 };
 
 const ZawiasCard = ({ zawias, index, onUpdate, onRemove, showAdvanced, zawiasyOptions, formatPrice, isEditMode }) => (
-    <div className="group bg-white/80 backdrop-blur-xl rounded-xl border border-white/20 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+    // 👇 CSS FIX: overflow-hidden usunięte, relative z-index dodany
+    <div className="group bg-white/80 backdrop-blur-xl rounded-xl border border-white/20 shadow-sm hover:shadow-md transition-all duration-300 relative z-0 hover:z-10">
         <div className="p-4">
             {/* Responsive Grid */}
             <div className="grid grid-cols-12 gap-y-3 gap-x-3 md:flex md:items-center md:gap-6">
@@ -128,9 +132,14 @@ const ZawiasCard = ({ zawias, index, onUpdate, onRemove, showAdvanced, zawiasyOp
                     </div>
                     <div className="flex-1 min-w-0">
                         <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 md:hidden">Rodzaj zawiasu</label>
-                        <select value={zawias.rodzaj} onChange={(e) => onUpdate(zawias.id, 'rodzaj', e.target.value)} disabled={!isEditMode} className="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all disabled:bg-gray-100">
-                            {zawiasyOptions.map((option, idx) => (<option key={idx} value={option.nazwa}>{option.nazwa}</option>))}
-                        </select>
+                        {/* ✅ NOWY SELEKTOR */}
+                        <MaterialSelector 
+                            category="zawiasy" 
+                            value={zawias.rodzaj} 
+                            onChange={(val) => onUpdate(zawias.id, 'rodzaj', val)} 
+                            placeholder="Wybierz zawias..."
+                            disabled={!isEditMode} 
+                        />
                     </div>
                 </div>
                 
