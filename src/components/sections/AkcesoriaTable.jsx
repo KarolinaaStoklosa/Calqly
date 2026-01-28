@@ -3,6 +3,7 @@ import { Plus, Trash2, TrendingUp, Wrench } from 'lucide-react';
 import { useProjectSection, useProject } from '../../context/ProjectContext';
 import { useCalculator } from '../../hooks/useCalculator';
 import { useMaterials } from '../../context/MaterialContext';
+import MaterialSelector from '../ui/MaterialSelector';
 
 const AkcesoriaTable = () => {
   const { isEditMode } = useProject();
@@ -128,9 +129,15 @@ const AkcesoriumCard = ({ akcesorium, index, onUpdate, onRemove, showAdvanced, a
                     </div>
                     <div className="flex-1 min-w-0">
                         <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 md:hidden">Rodzaj akcesorium</label>
-                        <select value={akcesorium.rodzaj} onChange={(e) => onUpdate(akcesorium.id, 'rodzaj', e.target.value)} disabled={!isEditMode} className="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-gray-100">
+                        {/* <select value={akcesorium.rodzaj} onChange={(e) => onUpdate(akcesorium.id, 'rodzaj', e.target.value)} disabled={!isEditMode} className="w-full h-10 px-3 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all disabled:bg-gray-100">
                             {akcesoriaOptions.map((option, idx) => (<option key={idx} value={option.nazwa}>{option.nazwa}</option>))}
-                        </select>
+                        </select> */}
+                        <MaterialSelector 
+                            category="akcesoria" 
+                            value={akcesorium.rodzaj}
+                            onChange={(value) => onUpdate(akcesorium.id, 'rodzaj', value)}
+                            disabled={!isEditMode} 
+                        />
                     </div>
                 </div>
 

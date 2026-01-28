@@ -6,6 +6,7 @@ import {
 import { useProjectSection, useProject } from '../../context/ProjectContext';
 import { useCalculator } from '../../hooks/useCalculator';
 import { useMaterials } from '../../context/MaterialContext';
+import MaterialSelector from '../ui/MaterialSelector';
 
 const KorpusyTable = () => {
   const { items: korpusy, addItem, updateItem, removeItem, total } = useProjectSection('szafki');
@@ -244,23 +245,39 @@ const KorpusCard = ({ korpus, index, onUpdate, onRemove, isEditMode, showAdvance
             <div className="space-y-3">
               <div>
                 <label className="text-[10px] font-bold text-gray-400 uppercase">Płyta Korpus</label>
-                <select value={korpus.plytyKorpus} onChange={(e) => onUpdate(korpus.id, 'plytyKorpus', e.target.value)} disabled={!isEditMode} className="w-full p-2 bg-white border rounded-lg text-sm">{plytyKorpusOptions.map((o, i) => <option key={i} value={o.nazwa}>{o.nazwa}</option>)}</select>
+                <MaterialSelector 
+                  category="plytyMeblowe" 
+                  value={korpus.plytyKorpus} 
+                  onChange={(value) => onUpdate(korpus.id, 'plytyKorpus', value)} />
               </div>
               <div>
                 <label className="text-[10px] font-bold text-gray-400 uppercase">Okleina Korpus</label>
-                <select value={korpus.okleina} onChange={(e) => onUpdate(korpus.id, 'okleina', e.target.value)} disabled={!isEditMode} className="w-full p-2 bg-white border rounded-lg text-sm">
-                  {okleinaOptions.map((o, i) => <option key={i} value={o.nazwa}>{o.nazwa}</option>)}</select>
+                {/* <select value={korpus.okleina} onChange={(e) => onUpdate(korpus.id, 'okleina', e.target.value)} disabled={!isEditMode} className="w-full p-2 bg-white border rounded-lg text-sm">
+                  {okleinaOptions.map((o, i) => <option key={i} value={o.nazwa}>{o.nazwa}</option>)}</select> */}
+                <MaterialSelector 
+                  category="okleina" 
+                  value={korpus.okleina} 
+                  onChange={(value) => onUpdate(korpus.id, 'okleina', value)} />
               </div>
             </div>
             <div className="space-y-3">
               <div>
                 <label className="text-[10px] font-bold text-gray-400 uppercase">Płyta Front</label>
-                <select value={korpus.plytyFront} onChange={(e) => onUpdate(korpus.id, 'plytyFront', e.target.value)} disabled={!isEditMode} className="w-full p-2 bg-white border rounded-lg text-sm">{plytyFrontOptions.map((o, i) => <option key={i} value={o.nazwa}>{o.nazwa}</option>)}</select>
+                {/* <select value={korpus.plytyFront} onChange={(e) => onUpdate(korpus.id, 'plytyFront', e.target.value)} disabled={!isEditMode} className="w-full p-2 bg-white border rounded-lg text-sm">{plytyFrontOptions.map((o, i) => <option key={i} value={o.nazwa}>{o.nazwa}</option>)}</select> */}
+                <MaterialSelector 
+                  category="fronty" 
+                  value={korpus.plytyFront} 
+                  onChange={(value) => onUpdate(korpus.id, 'plytyFront', value)} />
               </div>
               <div className="flex gap-2">
                  <div className="flex-1">
                     <label className="text-[10px] font-bold text-gray-400 uppercase">Okleina Front</label>
-                    <select value={korpus.okleinaFront || '-- BRAK OKLEINY --'} onChange={(e) => onUpdate(korpus.id, 'okleinaFront', e.target.value)} disabled={korpus.plytyFront === '-- BRAK FRONTU --' || !isEditMode} className="w-full p-2 bg-white border rounded-lg text-sm">{okleinaOptions.map((o, i) => <option key={i} value={o.nazwa}>{o.nazwa}</option>)}</select>
+                    {/* <select value={korpus.okleinaFront || '-- BRAK OKLEINY --'} onChange={(e) => onUpdate(korpus.id, 'okleinaFront', e.target.value)} disabled={korpus.plytyFront === '-- BRAK FRONTU --' || !isEditMode} className="w-full p-2 bg-white border rounded-lg text-sm">{okleinaOptions.map((o, i) => <option key={i} value={o.nazwa}>{o.nazwa}</option>)}</select> */}
+                    <MaterialSelector 
+                      category="okleina" 
+                      value={korpus.okleinaFront} 
+                      onChange={(value) => onUpdate(korpus.id, 'okleinaFront', value)} 
+                      disabled={korpus.plytyFront === '-- BRAK FRONTU --' || !isEditMode} />
                  </div>
                  <div className="w-20">
                     <label className="text-[10px] font-bold text-gray-400 uppercase">Podział</label>
