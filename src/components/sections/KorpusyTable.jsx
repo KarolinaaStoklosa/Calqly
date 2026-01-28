@@ -6,7 +6,7 @@ import {
 import { useProjectSection, useProject } from '../../context/ProjectContext';
 import { useCalculator } from '../../hooks/useCalculator';
 import { useMaterials } from '../../context/MaterialContext';
-import MaterialSelector from '../common/MaterialSelector';
+import MaterialSelector from '../ui/MaterialSelector';
 
 const KorpusyTable = () => {
   const { items: korpusy, addItem, updateItem, removeItem, total } = useProjectSection('szafki');
