@@ -6,7 +6,7 @@ import {
 import { useProjectSection, useProject } from '../../context/ProjectContext';
 import { useCalculator } from '../../hooks/useCalculator';
 import { useMaterials } from '../../context/MaterialContext';
-import MaterialSelector from '../ui/MaterialSelector';
+import MaterialSelector from '../common/MaterialSelector';
 
 const KorpusyTable = () => {
   const { items: korpusy, addItem, updateItem, removeItem, total } = useProjectSection('szafki');
@@ -161,7 +161,7 @@ const KorpusCard = ({ korpus, index, onUpdate, onRemove, isEditMode, showAdvance
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="group bg-white/80 backdrop-blur-xl rounded-xl border border-white/20 shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden">
+    <div className="group bg-white/80 backdrop-blur-xl rounded-xl border border-white/20 shadow-sm hover:shadow-md transition-all duration-300">
       {/* HEADER KARTY - GRID SYSTEM */}
       <div className="p-4 border-b border-gray-100">
         <div className="grid grid-cols-12 gap-3 md:flex md:items-center md:justify-between">
@@ -240,48 +240,69 @@ const KorpusCard = ({ korpus, index, onUpdate, onRemove, isEditMode, showAdvance
 
           <div className="h-px bg-gray-200" />
 
-          {/* Sekcja Materiałów - Pełna szerokość na mobile */}
+          {/* ✅ SEKCJA MATERIAŁÓW - POPRAWIONA OKLEINA (UKRYWANIE USŁUG) ✅ */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            {/* LEWA STRONA: KORPUS */}
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] font-bold text-gray-400 uppercase">Płyta Korpus</label>
-                <MaterialSelector 
-                  category="plytyMeblowe" 
-                  value={korpus.plytyKorpus} 
-                  onChange={(value) => onUpdate(korpus.id, 'plytyKorpus', value)} />
+                <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Płyta Korpus</label>
+                <MaterialSelector
+                  category="plytyMeblowe"
+                  value={korpus.plytyKorpus}
+                  onChange={(val) => onUpdate(korpus.id, 'plytyKorpus', val)}
+                  placeholder="Wybierz płytę..."
+                  disabled={!isEditMode}
+                />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-gray-400 uppercase">Okleina Korpus</label>
-                {/* <select value={korpus.okleina} onChange={(e) => onUpdate(korpus.id, 'okleina', e.target.value)} disabled={!isEditMode} className="w-full p-2 bg-white border rounded-lg text-sm">
-                  {okleinaOptions.map((o, i) => <option key={i} value={o.nazwa}>{o.nazwa}</option>)}</select> */}
-                <MaterialSelector 
-                  category="okleina" 
-                  value={korpus.okleina} 
-                  onChange={(value) => onUpdate(korpus.id, 'okleina', value)} />
+                <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Okleina Korpus</label>
+                <MaterialSelector
+                  category="okleina"
+                  value={korpus.okleina}
+                  onChange={(val) => onUpdate(korpus.id, 'okleina', val)}
+                  placeholder="Wybierz okleinę..."
+                  disabled={!isEditMode}
+                  filterFn={(item) => item.kategoria === 'material'} // 👈 TO JEST TO CZEGO BRAKOWAŁO!
+                />
               </div>
             </div>
+
+            {/* PRAWA STRONA: FRONT */}
             <div className="space-y-3">
               <div>
-                <label className="text-[10px] font-bold text-gray-400 uppercase">Płyta Front</label>
-                {/* <select value={korpus.plytyFront} onChange={(e) => onUpdate(korpus.id, 'plytyFront', e.target.value)} disabled={!isEditMode} className="w-full p-2 bg-white border rounded-lg text-sm">{plytyFrontOptions.map((o, i) => <option key={i} value={o.nazwa}>{o.nazwa}</option>)}</select> */}
-                <MaterialSelector 
-                  category="fronty" 
-                  value={korpus.plytyFront} 
-                  onChange={(value) => onUpdate(korpus.id, 'plytyFront', value)} />
+                <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Płyta Front</label>
+                <MaterialSelector
+                  category="fronty"
+                  value={korpus.plytyFront}
+                  onChange={(val) => onUpdate(korpus.id, 'plytyFront', val)}
+                  placeholder="Wybierz front..."
+                  disabled={!isEditMode}
+                />
               </div>
+              
               <div className="flex gap-2">
                  <div className="flex-1">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase">Okleina Front</label>
-                    {/* <select value={korpus.okleinaFront || '-- BRAK OKLEINY --'} onChange={(e) => onUpdate(korpus.id, 'okleinaFront', e.target.value)} disabled={korpus.plytyFront === '-- BRAK FRONTU --' || !isEditMode} className="w-full p-2 bg-white border rounded-lg text-sm">{okleinaOptions.map((o, i) => <option key={i} value={o.nazwa}>{o.nazwa}</option>)}</select> */}
-                    <MaterialSelector 
-                      category="okleina" 
-                      value={korpus.okleinaFront} 
-                      onChange={(value) => onUpdate(korpus.id, 'okleinaFront', value)} 
-                      disabled={korpus.plytyFront === '-- BRAK FRONTU --' || !isEditMode} />
+                    <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Okleina Front</label>
+                    <MaterialSelector
+                      category="okleina"
+                      value={korpus.okleinaFront || '-- BRAK OKLEINY --'}
+                      onChange={(val) => onUpdate(korpus.id, 'okleinaFront', val)}
+                      placeholder="Wybierz okleinę..."
+                      // Blokujemy, jeśli wybrano "BRAK FRONTU" lub nie jesteśmy w trybie edycji
+                      disabled={korpus.plytyFront === '-- BRAK FRONTU --' || !isEditMode}
+                      filterFn={(item) => item.kategoria === 'material'} // 👈 TUTAJ TEŻ FILTRUJEMY
+                    />
                  </div>
                  <div className="w-20">
-                    <label className="text-[10px] font-bold text-gray-400 uppercase">Podział</label>
-                    <input type="number" value={korpus.podziałFrontu || 1} onChange={(e) => onUpdate(korpus.id, 'podziałFrontu', e.target.value)} className="w-full p-2 bg-white border rounded-lg text-center text-sm" />
+                    <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Podział</label>
+                    <input 
+                      type="number" 
+                      value={korpus.podziałFrontu || 1} 
+                      onChange={(e) => onUpdate(korpus.id, 'podziałFrontu', e.target.value)} 
+                      disabled={!isEditMode}
+                      className="w-full p-2 bg-white border border-gray-300 rounded text-center text-sm focus:border-blue-500 outline-none" 
+                    />
                  </div>
               </div>
             </div>
