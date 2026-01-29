@@ -2,7 +2,6 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const { onRequest } = require("firebase-functions/v2/https");
 const { logger } = require("firebase-functions");
 const admin = require("firebase-admin");
-const functions = require("firebase-functions");
 
 // Inicjalizacja Stripe
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY || "sk_test_dummy_key_for_deploy_analysis";
@@ -10,15 +9,28 @@ const stripe = require("stripe")(stripeSecretKey, {
   apiVersion: '2024-06-20',
 });
 
+// Inicjalizacja Admina (musi być raz)
 admin.initializeApp();
 
-// ID Twoich cen (Te same co na frontendzie - potrzebne do wyliczenia dni przy BLIKu)
-const PRICE_IDS = {
-    MONTHLY: 'price_1Suf3OB04sIrbcnlndeX0zVh', 
-    YEARLY: 'price_1Suf41B04sIrbcnlJr0QqJ9m'
+// 🗺️ PRICING_MAP: Konfiguracja cen Subskrypcja vs Jednorazowe
+// Klucz: ID ceny Subskrypcyjnej (Recurring) - to, co wysyła frontend
+// Wartość: Obiekt z ID ceny Jednorazowej (One-time) dla BLIKa i liczbą dni dostępu
+const PRICING_MAP = {
+    // 1. PLAN MIESIĘCZNY
+    'price_1Suf3OB04sIrbcnlndeX0zVh': { 
+        // ID ceny "One-time" ze Stripe (musisz ją stworzyć w Dashboardzie)
+        oneTimePriceId: 'price_1Sv1jbB04sIrbcnlWLJrCuU1', 
+        days: 30
+    },
+    // 2. PLAN ROCZNY
+    'price_1Suf41B04sIrbcnlJr0QqJ9m': { 
+        // ID ceny "One-time" ze Stripe
+        oneTimePriceId: 'price_1Sv1nLB04sIrbcnlOjeD2svl', 
+        days: 365
+    }
 };
 
-// ✅ POMOCNICZA: Bezpieczna konwersja timestamp
+// ✅ POMOCNICZA: Bezpieczna konwersja timestamp ze Stripe na Firestore
 const toFirestoreTimestamp = (seconds) => {
   if (typeof seconds === 'number' && !isNaN(seconds)) {
     return admin.firestore.Timestamp.fromMillis(seconds * 1000);
@@ -47,15 +59,35 @@ exports.createStripeCheckout = onCall({ cors: ALLOWED_ORIGINS }, async (request)
     throw new HttpsError("unauthenticated", "Musisz być zalogowany.");
   }
 
-  // Frontend wysyła: priceId oraz mode ('subscription' lub 'payment')
-  const { priceId, mode } = request.data; 
+  // Frontend wysyła: priceId (zawsze subskrypcyjne) oraz mode ('subscription' lub 'payment')
+  const { priceId, mode, wantsInvoice } = request.data; 
   
   const YOUR_DOMAIN = process.env.APP_DOMAIN || "https://qalqly.woodlygroup.pl"; 
   const userId = request.auth.uid;
   const userEmail = request.auth.token.email;
 
+  // 1. Walidacja planu
+  const planConfig = PRICING_MAP[priceId];
+  if (!planConfig) {
+      throw new HttpsError('invalid-argument', 'Nieprawidłowy identyfikator planu (priceId).');
+  }
+
+  // 2. Decyzja: Którego ID ceny użyć?
+  let finalPriceId = priceId; // Domyślnie: Subskrypcja
+  
+  if (mode === 'payment') {
+      // Jeśli BLIK -> podmieniamy na cenę Jednorazową
+      finalPriceId = planConfig.oneTimePriceId;
+      
+      // Walidacja konfiguracji (żeby nie wysłać śmieci do Stripe)
+      if (!finalPriceId || finalPriceId.includes('TUTAJ_WKLEJ')) {
+          logger.error('Brak konfiguracji oneTimePriceId dla:', priceId);
+          throw new HttpsError('internal', 'Błąd konfiguracji cen jednorazowych na serwerze.');
+      }
+  }
+
   try {
-    // 1. Znajdź lub stwórz klienta Stripe
+    // 3. Znajdź lub stwórz klienta Stripe
     const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
     let customer;
 
@@ -71,57 +103,59 @@ exports.createStripeCheckout = onCall({ cors: ALLOWED_ORIGINS }, async (request)
       });
     }
 
+    // Zapisz ID klienta w bazie
     const userRef = admin.firestore().collection('users').doc(userId);
     await userRef.set({ stripeCustomerId: customer.id }, { merge: true });
 
-    // 2. LOGIKA WYBORU METOD PŁATNOŚCI (Zamiast automatic_payment_methods)
-    let paymentMethods = ['card']; // Domyślnie tylko karta
-    let sessionMode = 'subscription';
-    let accessDays = 30; // Domyślnie
-
-    if (mode === 'payment') {
-        // Jeśli klient wybrał jednorazowo -> włączamy BLIK i P24
-        paymentMethods = ['card', 'blik', 'p24'];
-        sessionMode = 'payment';
-
-        // Ustalamy ile dni dostępu dać (dla Webhooka)
-        if (priceId === PRICE_IDS.YEARLY) accessDays = 365;
-    }
-
-    // 3. Konfiguracja sesji
+    // 4. Konfiguracja sesji Checkout
     const sessionParams = {
       customer: customer.id,
       client_reference_id: userId,
       
-      // RĘCZNE DEFINIOWANIE METOD (Najbezpieczniejsza opcja)
-      payment_method_types: paymentMethods,
+      mode: mode, // 'subscription' lub 'payment'
       
-      mode: sessionMode,
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: [{ 
+          price: finalPriceId, 
+          quantity: 1 
+      }],
       
       success_url: `${YOUR_DOMAIN}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${YOUR_DOMAIN}/subscribe?canceled=true`,
       
-      billing_address_collection: 'required',
+      billing_address_collection: wantsInvoice ? 'required' : 'auto',
+      tax_id_collection: { enabled: !!wantsInvoice },
       allow_promotion_codes: true,
-
+    //   customer_update: {
+    //       address: 'auto',
+    //       name: 'auto',
+    //   },
+      
+      // Przekazujemy metadane (ważne dla Webhooka przy BLIKu)
       metadata: { 
           userId: userId,
-          // Przekazujemy info o długości dostępu (potrzebne tylko dla BLIKa)
-          accessDays: accessDays.toString() 
+          accessDays: planConfig.days.toString() 
       },
     };
-    
-    // Opcje specyficzne dla SUBSKRYPCJI
-    if (sessionMode === 'subscription') {
+
+    if (wantsInvoice) {
+        sessionParams.customer_update = {
+            address: 'auto',
+            name: 'auto',
+        };
+    }
+
+    // Specyficzne ustawienia w zależności od trybu
+    if (mode === 'subscription') {
+        // Tylko karty, zapisujemy na zawsze
+        sessionParams.payment_method_types = ['card'];
         sessionParams.payment_method_collection = 'always';
         sessionParams.subscription_data = {
             metadata: { userId: userId }
         };
-    } 
-    // Opcje specyficzne dla JEDNORAZOWYCH (BLIK)
-    else if (sessionMode === 'payment') {
-        sessionParams.invoice_creation = { enabled: true };
+    } else {
+        // BLIK, Karta (jednorazowo)
+        sessionParams.payment_method_types = ['card', 'blik'];
+        sessionParams.invoice_creation = { enabled: true }; // Wymagane, żeby klient dostał fakturę
     }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
@@ -129,8 +163,8 @@ exports.createStripeCheckout = onCall({ cors: ALLOWED_ORIGINS }, async (request)
 
   } catch (error) {
     logger.error("Błąd tworzenia sesji Stripe:", error);
-    const status = error.statusCode || 500;
-    throw new HttpsError("internal", `Wystąpił błąd serwera (${status}): ${error.message}`);
+    // Przekazujemy błąd ze Stripe (np. błędne ID ceny) do frontendu
+    throw new HttpsError("internal", error.message);
   }
 });
 
@@ -140,28 +174,33 @@ exports.createStripeCheckout = onCall({ cors: ALLOWED_ORIGINS }, async (request)
 exports.createPortalLink = onCall({ cors: true }, async (request) => {
     if (!request.auth) throw new HttpsError("unauthenticated", "Musisz być zalogowany.");
     
+    // Ważne: return_url powinien prowadzić do miejsca, gdzie klient widzi faktury
     const YOUR_DOMAIN = process.env.APP_DOMAIN || "https://qalqly.woodlygroup.pl";
+    const RETURN_URL = `${YOUR_DOMAIN}/company-settings`;
+
     const uid = request.auth.uid;
     const userDoc = await admin.firestore().collection("users").doc(uid).get();
     const stripeCustomerId = userDoc.data()?.stripeCustomerId;
 
-    if (!stripeCustomerId) throw new HttpsError("not-found", "Nie znaleziono konta klienta Stripe.");
+    if (!stripeCustomerId) {
+        throw new HttpsError("not-found", "Nie znaleziono konta klienta Stripe. Dokonaj najpierw zakupu.");
+    }
 
     try {
       const portalSession = await stripe.billingPortal.sessions.create({
         customer: stripeCustomerId,
-        return_url: `${YOUR_DOMAIN}/company-settings`,
+        return_url: RETURN_URL,
       });
       return { url: portalSession.url };
     } catch (error) {
-      logger.error("Błąd portalu:", error);
+      logger.error("Błąd tworzenia portalu:", error);
       throw new HttpsError("internal", error.message);
     }
 });
 
 
 /**
- * Funkcja 3: Webhook
+ * Funkcja 3: Webhook (Kluczowa dla aktualizacji uprawnień)
  */
 exports.stripeWebhook = onRequest(async (req, res) => {
   const signature = req.headers["stripe-signature"];
@@ -171,7 +210,7 @@ exports.stripeWebhook = onRequest(async (req, res) => {
   try {
     event = stripe.webhooks.constructEvent(req.rawBody, signature, endpointSecret);
   } catch (err) {
-    logger.error("Błąd webhooka:", err.message);
+    logger.error("Błąd weryfikacji webhooka:", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
@@ -180,7 +219,7 @@ exports.stripeWebhook = onRequest(async (req, res) => {
   try {
     switch (event.type) {
       
-      // 🟢 A. SUBSKRYPCJA (KARTA)
+      // 🟢 A. SUBSKRYPCJA (KARTA) - Odnawialna
       case 'customer.subscription.created':
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted': {
@@ -190,7 +229,7 @@ exports.stripeWebhook = onRequest(async (req, res) => {
         if (userId) {
             const userRef = admin.firestore().collection('users').doc(userId);
             
-            // Zapisz status subskrypcji
+            // 1. Zapisz szczegóły subskrypcji
             await userRef.set({ 
                 subscription: {
                     status: subscription.status,
@@ -200,7 +239,7 @@ exports.stripeWebhook = onRequest(async (req, res) => {
                 }
             }, { merge: true });
             
-            // Jeśli aktywna -> ustawiamy globalny dostęp
+            // 2. Jeśli aktywna -> ustaw globalny dostęp w 'accessExpiresAt'
             if (['active', 'trialing'].includes(subscription.status)) {
                  await userRef.set({ 
                       accessExpiresAt: toFirestoreTimestamp(subscription.current_period_end) 
@@ -212,35 +251,35 @@ exports.stripeWebhook = onRequest(async (req, res) => {
         break;
       }
 
-      // 🔵 B. PŁATNOŚĆ JEDNORAZOWA (BLIK / P24)
+      // 🔵 B. PŁATNOŚĆ JEDNORAZOWA (BLIK )
       case 'checkout.session.completed': {
         const session = dataObject;
-        // userId bierzemy z client_reference_id (ustawione w createStripeCheckout)
+        // userId bierzemy z client_reference_id lub metadanych
         const userId = session.client_reference_id || session.metadata.userId;
         
         if (userId) {
             const userRef = admin.firestore().collection('users').doc(userId);
             
-            // Zapisz Stripe Customer ID (przydatne na przyszłość)
+            // Zapisz ID klienta na przyszłość
             await userRef.set({ stripeCustomerId: session.customer }, { merge: true });
 
-            // Jeśli to płatność jednorazowa (BLIK/P24)
+            // Jeśli to tryb 'payment' (jednorazowy) i zapłacono:
             if (session.mode === 'payment' && session.payment_status === 'paid') {
                 
-                // Odczytujemy, na ile dni dać dostęp (z metadanych)
+                // Odczytujemy liczbę dni z metadanych (którą wstawiliśmy w createStripeCheckout)
                 const daysToAdd = parseInt(session.metadata.accessDays || '30');
                 
-                // Obliczamy datę wygaśnięcia
+                // Obliczamy nową datę wygaśnięcia (od dzisiaj + X dni)
                 const now = new Date();
                 const newExpiryDate = new Date(now.setDate(now.getDate() + daysToAdd));
                 
                 await userRef.set({
                     accessExpiresAt: admin.firestore.Timestamp.fromDate(newExpiryDate),
-                    // Ustawiamy status 'manual_paid', żeby frontend wiedział, że jest OK
+                    // Ustawiamy status 'manual_paid' (żeby frontend wiedział, że nie ma subskrypcji, ale jest OK)
                     subscription: { status: 'manual_paid' } 
                 }, { merge: true });
 
-                logger.info(`BLIK/P24: Przyznano dostęp dla ${userId} na ${daysToAdd} dni.`);
+                logger.info(`BLIK: Przyznano dostęp dla ${userId} na ${daysToAdd} dni.`);
             }
         }
         break;
@@ -249,7 +288,10 @@ exports.stripeWebhook = onRequest(async (req, res) => {
       // 🔴 C. BŁĄD PŁATNOŚCI
       case 'invoice.payment_failed': {
           const userId = await findUidByCustomerId(dataObject.customer);
-          if (userId) logger.warn(`Płatność nieudana dla usera ${userId}`);
+          if (userId) {
+              logger.warn(`Płatność nieudana dla usera ${userId}.`);
+              // Tutaj można dodać logikę wysłania maila do klienta
+          }
           break;
       }
 
@@ -257,8 +299,8 @@ exports.stripeWebhook = onRequest(async (req, res) => {
         break;
     }
   } catch (error) {
-    logger.error('BŁĄD W WEBHOOKU:', error);
-    return res.status(500).send('Błąd serwera.');
+    logger.error('BŁĄD WEWNĘTRZNY W WEBHOOKU:', error);
+    return res.status(500).send('Server Error');
   }
 
   res.status(200).send();

@@ -8,6 +8,7 @@ import { Star, LogOut, AlertTriangle, CreditCard, CheckCircle2, Smartphone, Load
 // Bezpieczny klucz z .env
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
+
 // ID CEN (Upewnij się, że są poprawne ze Stripe Dashboard)
 const MONTHLY_PRICE_ID = 'price_1Suf3OB04sIrbcnlndeX0zVh'; 
 const YEARLY_PRICE_ID = 'price_1Suf41B04sIrbcnlJr0QqJ9m';
@@ -47,6 +48,8 @@ const SubscriptionPage = () => {
   
   const [loading, setLoading] = useState(null); 
   const [error, setError] = useState('');
+  
+const [wantsInvoice, setWantsInvoice] = useState(false); // <--- NOWY STAN
 
   const handleSubscribe = async (priceId) => {
     setLoading(priceId);
@@ -55,7 +58,8 @@ const SubscriptionPage = () => {
     try {
       const response = await createStripeCheckout({ 
         priceId: priceId,
-        mode: billingMode 
+        mode: billingMode,
+        wantsInvoice: wantsInvoice
       });
       
       const { id } = response.data;
@@ -92,6 +96,23 @@ const SubscriptionPage = () => {
             Odblokuj pełny potencjał Qalqly. Twórz nieograniczone wyceny, generuj profesjonalne oferty PDF i oszczędzaj czas.
           </p>
         </div>
+
+        <div className="flex items-center justify-center mt-4 mb-8">
+    <label className="flex items-center space-x-2 cursor-pointer select-none group">
+        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
+            wantsInvoice ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-300 group-hover:border-blue-400'
+        }`}>
+            {wantsInvoice && <CheckCircle2 size={14} className="text-white" />}
+        </div>
+        <input 
+            type="checkbox" 
+            className="hidden" 
+            checked={wantsInvoice} 
+            onChange={(e) => setWantsInvoice(e.target.checked)} 
+        />
+        <span className="text-sm text-gray-600 font-medium">Chcę otrzymać fakturę VAT na firmę</span>
+    </label>
+</div>
 
         {/* --- PRZEŁĄCZNIK TRYBU PŁATNOŚCI --- */}
         <div className="bg-white p-1.5 rounded-xl shadow-sm border border-gray-200 mb-10 inline-flex relative z-0">
@@ -179,10 +200,15 @@ const SubscriptionPage = () => {
             
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-blue-600 uppercase tracking-wide">Roczny</h3>
-              <div className="flex items-baseline gap-1 mt-2">
-                <span className="text-4xl font-bold text-gray-900">499 zł</span>
-                <span className="text-gray-500">/ rok</span>
+              <div className="flex flex-col mt-2">
+                <div className="flex items-baseline gap-1">
+                     <span className="text-4xl font-bold text-gray-900">499 zł</span>
+                     <span className="text-gray-500">/ rok</span>
+                </div>
+                {/* Poprawione wyświetlanie: */}
+                <span className="text-sm font-bold text-orange-500 mt-1">🔥 Promocja dla pierwszych 100 Klientów!</span>
               </div>
+
               <p className="text-sm text-green-600 font-semibold mt-2">Oszczędzasz 929 zł rocznie!</p>
               <p className="text-xs text-gray-400">netto (613,77 zł brutto)</p>
             </div>
@@ -203,11 +229,7 @@ const SubscriptionPage = () => {
             </ul>
 
             <div className="mt-auto">
-                <div className="flex justify-center gap-3 text-xs text-blue-400 mb-3 uppercase font-semibold tracking-wider">
-                    {billingMode === 'subscription' 
-                        ? <span>Karta • Google Pay • Apple Pay</span> 
-                        : <span>BLIK • Przelewy24 • Karty</span>}
-                </div>
+
                 <button 
                     onClick={() => handleSubscribe(YEARLY_PRICE_ID)} 
                     disabled={!!loading} 
