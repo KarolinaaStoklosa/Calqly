@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { loadStripe } from '@stripe/stripe-js';
 import { useAuth } from '../../context/AuthContext';
-import { Star, LogOut, AlertTriangle, CreditCard, CheckCircle2 } from 'lucide-react';
+import { Star, LogOut, AlertTriangle, CreditCard, CheckCircle2, Smartphone, Loader2 } from 'lucide-react';
 
-// bezpieczny klucz z .env.production
+// Bezpieczny klucz z .env
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
 
-// NOWE ID CEN (Miesięczna 119 zł / Roczna 499 zł)
+// ID CEN (Upewnij się, że są poprawne ze Stripe Dashboard)
 const MONTHLY_PRICE_ID = 'price_1Suf3OB04sIrbcnlndeX0zVh'; 
 const YEARLY_PRICE_ID = 'price_1Suf41B04sIrbcnlJr0QqJ9m';
 
@@ -27,9 +27,9 @@ const AuthHeader = () => {
         <div className="absolute top-0 right-0 p-4 z-10">
             <div className="flex items-center gap-4 text-sm">
                 <span className="text-gray-600 hidden sm:inline">{currentUser.email}</span>
-                <button onClick={handleLogout} className="flex items-center gap-2 font-semibold text-gray-700 hover:text-red-600 transition-colors">
+                <button onClick={handleLogout} className="flex items-center gap-2 text-gray-500 hover:text-red-600 transition-colors">
                     <LogOut size={16} />
-                    Wyloguj
+                    <span>Wyloguj</span>
                 </button>
             </div>
         </div>
@@ -37,164 +37,206 @@ const AuthHeader = () => {
 };
 
 const SubscriptionPage = () => {
-  const [loading, setLoading] = useState(null);
-  const [error, setError] = useState('');
-  const { subscription } = useAuth(); 
+  const { currentUser } = useAuth();
+  const functions = getFunctions();
+  const createStripeCheckout = httpsCallable(functions, 'createStripeCheckout');
 
-  const handleSubscribe = async (priceId, mode) => {
-    setLoading(priceId); // Ustawiamy loading na konkretny ID, żeby wiedzieć który przycisk kręcić
+  // 'subscription' = Karta (cykliczna)
+  // 'payment' = BLIK / Przelewy24 (jednorazowa)
+  const [billingMode, setBillingMode] = useState('subscription'); 
+  
+  const [loading, setLoading] = useState(null); 
+  const [error, setError] = useState('');
+
+  const handleSubscribe = async (priceId) => {
+    setLoading(priceId);
     setError('');
 
     try {
-      const functions = getFunctions();
-      const createStripeCheckout = httpsCallable(functions, 'createStripeCheckout');
+      const response = await createStripeCheckout({ 
+        priceId: priceId,
+        mode: billingMode 
+      });
       
-      // ✅ OBA PLANY SĄ TERAZ SUBSKRYPCJAMI
-      const { data } = await createStripeCheckout({ priceId, mode });
-
+      const { id } = response.data;
+      
       const stripe = await stripePromise;
-      await stripe.redirectToCheckout({ sessionId: data.id });
+      const { error: stripeError } = await stripe.redirectToCheckout({ sessionId: id });
 
+      if (stripeError) {
+        setError(stripeError.message);
+        setLoading(null);
+      }
     } catch (err) {
-      console.error("Błąd tworzenia sesji Stripe:", err);
-      setError('Wystąpił błąd. Spróbuj ponownie później.');
+      console.error(err);
+      setError('Wystąpił błąd połączenia z płatnościami. Spróbuj ponownie.');
       setLoading(null);
     }
   };
 
-   const handleUpdatePayment = async () => {
-    setLoading('portal');
-    try {
-      const functions = getFunctions();
-      const createPortalLink = httpsCallable(functions, 'createPortalLink');
-      const { data } = await createPortalLink();
-      window.location.href = data.url;
-    } catch (err) {
-      console.error("Błąd otwierania portalu Stripe:", err);
-      setError('Nie udało się otworzyć portalu płatności. Spróbuj ponownie.');
-      setLoading(null);
-    }
-  };
-
-   // UI DLA PROBLEMÓW Z PŁATNOŚCIĄ (PAST_DUE / UNPAID)
-   if (subscription?.status === 'past_due' || subscription?.status === 'unpaid') {
-    return (
-      <div className="relative flex items-center justify-center min-h-screen bg-gray-50 p-4">
-        <AuthHeader />
-        <div className="w-full max-w-lg p-8 space-y-6 bg-white rounded-xl shadow-lg text-center">
-          <AlertTriangle className="w-16 h-16 text-red-500 mx-auto" />
-          <h1 className="text-3xl font-bold text-gray-800">Problem z płatnością</h1>
-          <p className="text-gray-600">
-            Wygląda na to, że ostatnia próba obciążenia Twojej karty nie powiodła się. Aby odzyskać pełen dostęp do aplikacji, prosimy o zaktualizowanie metody płatności.
-          </p>
-          <button 
-            onClick={handleUpdatePayment} 
-            disabled={!!loading} 
-            className="w-full mt-4 py-3 font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 disabled:bg-red-400 flex items-center justify-center gap-2"
-          >
-            <CreditCard size={20} />
-            {loading === 'portal' ? 'Przekierowuję...' : 'Zaktualizuj Metodę Płatności'}
-          </button>
-          {error && <p className="text-red-600 mt-4">{error}</p>}
-        </div>
-      </div>
-    );
-  }
-
-  // GŁÓWNY UI WYBORU PLANU
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 relative">
       <AuthHeader />
       
-      <div className="w-full max-w-5xl p-4 md:p-8 space-y-8 bg-white rounded-2xl shadow-xl text-center mt-12 md:mt-0">
-        <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Wybierz Swój Plan Dostępu</h1>
-            <p className="text-gray-600 mt-3 text-lg">Twórz profesjonalne wyceny szybciej i zarabiaj więcej.</p>
+      <div className="container mx-auto px-4 py-16 flex flex-col items-center justify-center min-h-screen">
+        
+        {/* NAGŁÓWEK */}
+        <div className="text-center mb-10 max-w-2xl">
+          <div className="inline-flex items-center justify-center p-3 bg-blue-100 rounded-2xl mb-6">
+            <Star className="w-8 h-8 text-blue-600 fill-blue-600" />
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
+            Wybierz swój plan
+          </h1>
+          <p className="text-lg text-gray-600">
+            Odblokuj pełny potencjał Qalqly. Twórz nieograniczone wyceny, generuj profesjonalne oferty PDF i oszczędzaj czas.
+          </p>
+        </div>
+
+        {/* --- PRZEŁĄCZNIK TRYBU PŁATNOŚCI --- */}
+        <div className="bg-white p-1.5 rounded-xl shadow-sm border border-gray-200 mb-10 inline-flex relative z-0">
+            {/* Opcja 1: Subskrypcja */}
+            <button
+                onClick={() => setBillingMode('subscription')}
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                    billingMode === 'subscription' 
+                    ? 'bg-blue-600 text-white shadow-md' 
+                    : 'text-gray-500 hover:bg-gray-50'
+                }`}
+            >
+                <CreditCard size={18} />
+                <span>Karta (Subskrypcja)</span>
+            </button>
+
+            {/* Opcja 2: Jednorazowo */}
+            <button
+                onClick={() => setBillingMode('payment')}
+                className={`flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                    billingMode === 'payment' 
+                    ? 'bg-blue-600 text-white shadow-md' 
+                    : 'text-gray-500 hover:bg-gray-50'
+                }`}
+            >
+                <Smartphone size={18} />
+                <span>Jednorazowo (BLIK)</span>
+            </button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+        {/* Informacja pod przełącznikiem */}
+        <p className="text-sm text-gray-500 mb-8 h-6">
+            {billingMode === 'subscription' 
+                ? "Pobieramy opłatę automatycznie co miesiąc/rok. Możesz anulować w każdej chwili." 
+                : "Płacisz raz, korzystasz przez 30 dni lub rok. Brak automatycznego odnawiania."}
+        </p>
+
+        {/* KARTY CENOWE */}
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl w-full">
           
-          {/* === PLAN MIESIĘCZNY === */}
-          <div className="p-8 border-2 border-gray-100 rounded-2xl text-left hover:border-gray-300 transition-all duration-300 flex flex-col relative bg-white">
-            <div className="mb-4">
-                <h2 className="text-2xl font-bold text-gray-900">Plan Miesięczny</h2>
-                <p className="text-gray-500 text-sm mt-1">Elastyczność. Rezygnujesz kiedy chcesz.</p>
-            </div>
-            
+          {/* PLAN MIESIĘCZNY */}
+          <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 flex flex-col relative overflow-hidden transition-transform hover:scale-[1.02] duration-300">
             <div className="mb-6">
-                <p className="text-5xl font-extrabold text-gray-900">119 <span className="text-2xl font-medium">zł</span></p>
-                <p className="text-gray-500 text-sm mt-1">płatne co miesiąc</p>
+              <h3 className="text-lg font-semibold text-gray-500 uppercase tracking-wide">Miesięczny</h3>
+              <div className="flex items-baseline gap-1 mt-2">
+                <span className="text-4xl font-bold text-gray-900">119 zł</span>
+                <span className="text-gray-500">/ mies.</span>
+              </div>
+              <p className="text-sm text-gray-400 mt-2">netto (146,37 zł brutto)</p>
             </div>
 
-            <div className="space-y-3 mb-8 flex-grow">
-                <div className="flex items-center gap-2 text-sm text-gray-600"><CheckCircle2 size={18} className="text-green-500"/> <span>Pełen dostęp do kalkulatora</span></div>
-                <div className="flex items-center gap-2 text-sm text-gray-600"><CheckCircle2 size={18} className="text-green-500"/> <span>Generowanie ofert PDF</span></div>
-                <div className="flex items-center gap-2 text-sm text-gray-600"><CheckCircle2 size={18} className="text-green-500"/> <span>Baza materiałów i cen</span></div>
-            </div>
+            <ul className="space-y-4 mb-8 flex-1">
+              <li className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
+                <span className="text-gray-600 text-sm">Pełny dostęp do wszystkich funkcji</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
+                <span className="text-gray-600 text-sm">Nielimitowane wyceny i projekty</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
+                <span className="text-gray-600 text-sm">Eksport PDF z Twoim logo</span>
+              </li>
+            </ul>
 
-            <div className="mt-auto">
-                <div className="flex justify-center gap-3 text-xs text-gray-400 mb-3 uppercase font-semibold tracking-wider">
-                    <span>Karta</span> • <span>BLIK</span> • <span>Google Pay</span>
-                </div>
-                <button 
-                    onClick={() => handleSubscribe(MONTHLY_PRICE_ID, 'subscription')} 
-                    disabled={!!loading} 
-                    className="w-full py-4 font-bold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 hover:text-gray-900 transition-colors disabled:bg-gray-50 disabled:text-gray-300"
-                >
-                {loading === MONTHLY_PRICE_ID ? 'Przetwarzanie...' : 'Wybieram Miesięczny'}
-                </button>
-            </div>
+            <button 
+                onClick={() => handleSubscribe(MONTHLY_PRICE_ID)} 
+                disabled={!!loading} 
+                className="w-full py-4 font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors disabled:opacity-70 flex justify-center items-center gap-2"
+            >
+               {loading === MONTHLY_PRICE_ID ? (
+                   <><Loader2 className="w-4 h-4 animate-spin" /> Przetwarzanie...</>
+               ) : (
+                   billingMode === 'subscription' ? 'Wybieram Subskrypcję' : 'Kup na 30 dni'
+               )}
+            </button>
           </div>
-          
-          {/* === PLAN ROCZNY (BEST VALUE) === */}
-          <div className="p-8 border-2 border-blue-600 rounded-2xl text-left relative bg-blue-50/50 flex flex-col transform md:-translate-y-2 shadow-lg">
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-1.5 text-sm font-bold rounded-full flex items-center gap-1 shadow-md whitespace-nowrap">
-                <Star size={14} fill="white" /> Oszczędzasz 65%
-            </div>
-            
-            <div className="mb-4 mt-2">
-                <h2 className="text-2xl font-bold text-gray-900">Plan Roczny</h2>
-                <p className="text-blue-600 text-sm mt-1 font-medium">Najlepszy wybór dla profesjonalistów.</p>
+
+          {/* PLAN ROCZNY (Wyróżniony) */}
+          <div className="bg-white rounded-3xl p-8 shadow-2xl border-2 border-blue-500 flex flex-col relative overflow-hidden transform md:-translate-y-4">
+            <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-bl-xl">
+              NAJCZĘŚCIEJ WYBIERANY
             </div>
             
             <div className="mb-6">
-                <p className="text-5xl font-extrabold text-gray-900">499 <span className="text-2xl font-medium">zł</span></p>
-                <p className="text-gray-500 text-sm mt-1">płatne raz na rok</p>
-                <div className="inline-block mt-3 bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-sm font-bold">
-                    To tylko 41,58 zł / mies.
-                </div>
+              <h3 className="text-lg font-semibold text-blue-600 uppercase tracking-wide">Roczny</h3>
+              <div className="flex items-baseline gap-1 mt-2">
+                <span className="text-4xl font-bold text-gray-900">499 zł</span>
+                <span className="text-gray-500">/ rok</span>
+              </div>
+              <p className="text-sm text-green-600 font-semibold mt-2">Oszczędzasz 929 zł rocznie!</p>
+              <p className="text-xs text-gray-400">netto (613,77 zł brutto)</p>
             </div>
 
-            <div className="space-y-3 mb-8 flex-grow">
-                <div className="flex items-center gap-2 text-sm text-gray-700 font-medium"><CheckCircle2 size={18} className="text-blue-600"/> <span>Wszystko co w planie miesięcznym</span></div>
-                <div className="flex items-center gap-2 text-sm text-gray-700 font-medium"><CheckCircle2 size={18} className="text-blue-600"/> <span>Gwarancja stałej ceny przez rok</span></div>
-                <div className="flex items-center gap-2 text-sm text-gray-700 font-medium"><CheckCircle2 size={18} className="text-blue-600"/> <span>Faktura zbiorcza raz w roku</span></div>
-            </div>
+            <ul className="space-y-4 mb-8 flex-1">
+              <li className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-blue-500 shrink-0" />
+                <span className="text-gray-700 font-medium text-sm">Wszystko co w pakiecie miesięcznym</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-blue-500 shrink-0" />
+                <span className="text-gray-700 font-medium text-sm">Priorytetowe wsparcie techniczne</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-blue-500 shrink-0" />
+                <span className="text-gray-700 font-medium text-sm">Gwarancja stałej ceny przy odnowieniu</span>
+              </li>
+            </ul>
 
             <div className="mt-auto">
                 <div className="flex justify-center gap-3 text-xs text-blue-400 mb-3 uppercase font-semibold tracking-wider">
-                    <span>Karta</span> • <span>BLIK</span> • <span>Przelewy24</span>
+                    {billingMode === 'subscription' 
+                        ? <span>Karta • Google Pay • Apple Pay</span> 
+                        : <span>BLIK • Przelewy24 • Karty</span>}
                 </div>
                 <button 
-                    onClick={() => handleSubscribe(YEARLY_PRICE_ID, 'subscription')} 
+                    onClick={() => handleSubscribe(YEARLY_PRICE_ID)} 
                     disabled={!!loading} 
-                    className="w-full py-4 font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all disabled:opacity-70"
+                    className="w-full py-4 font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all disabled:opacity-70 flex justify-center items-center gap-2"
                 >
-                {loading === YEARLY_PRICE_ID ? 'Przetwarzanie...' : 'Wybieram Roczny'}
+                {loading === YEARLY_PRICE_ID ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Przetwarzanie...</>
+                ) : (
+                    billingMode === 'subscription' ? 'Wybieram Roczny' : 'Kup na rok (Jednorazowo)'
+                )}
                 </button>
             </div>
           </div>
 
         </div>
-        {error && <p className="text-red-600 font-medium mt-4 bg-red-50 p-3 rounded-lg">{error}</p>}
+
+        {error && (
+            <div className="mt-8 flex items-center gap-2 text-red-600 bg-red-50 px-4 py-3 rounded-lg border border-red-100 animate-in fade-in slide-in-from-bottom-2">
+                <AlertTriangle size={20} />
+                <p className="font-medium">{error}</p>
+            </div>
+        )}
       </div>
 
       {/* STOPKA PRAWNA */}
-      <div className="mt-12 text-center max-w-2xl px-4">
+      <div className="pb-12 text-center max-w-2xl mx-auto px-4">
         <p className="text-[11px] leading-relaxed text-gray-400">
           Operatorem płatności i dostawcą usługi jest <strong>TREEO ART</strong> (właściciel marki Woodly Group).<br/>
-          Faktura VAT zostanie wystawiona przez podmiot: <br/>
-          TREEO ART Bartłomiej Stokłosa, Sebastian Rzepecki S.C., ul. Limanowska 28A, 32-720 Nowy Wiśnicz, NIP 868-198-75-13.
+          Faktura VAT zostanie wystawiona automatycznie po dokonaniu płatności.
         </p>
       </div>
     </div>

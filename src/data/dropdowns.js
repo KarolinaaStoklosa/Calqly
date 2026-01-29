@@ -326,7 +326,7 @@ export const DROPDOWN_DATA = {
     { "nazwa": "Montaż Blat 38mm", "cena": 0, "opis": "", "kategoria": "uslugi", "typ": "usługa" },
     { "nazwa": "Montaż Blat HPL 12mm", "cena": 0, "opis": "", "kategoria": "uslugi", "typ": "usługa" },
     { "nazwa": "Montaż Splashbak", "cena": 0, "opis": "", "kategoria": "uslugi", "typ": "usługa" },
-    { "nazwa": "Szlifowanie krawędzi Metr Bierzący", "cena": 0, "opis": "", "kategoria": "uslugi", "typ": "usługa" },
+    { "nazwa": "Szlifowanie krawędzi Metr Bieżący", "cena": 0, "opis": "", "kategoria": "uslugi", "typ": "usługa" },
     { "nazwa": "Łączenie blatu Frezowanie łyżwa i śruba", "cena": 0, "opis": "", "kategoria": "uslugi", "typ": "usługa" },
     { "nazwa": "Otwór Płyta indukcyjna", "cena": 0, "opis": "", "kategoria": "uslugi", "typ": "usługa" },
     { "nazwa": "Otwór Zlewozmywak", "cena": 0, "opis": "", "kategoria": "uslugi", "typ": "usługa" },

@@ -4,12 +4,19 @@ const { logger } = require("firebase-functions");
 const admin = require("firebase-admin");
 const functions = require("firebase-functions");
 
-// Inicjalizacja Stripe z kluczem z .env
-const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY, { 
-  apiVersion: '2024-06-20', 
+// Inicjalizacja Stripe
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY || "sk_test_dummy_key_for_deploy_analysis";
+const stripe = require("stripe")(stripeSecretKey, {
+  apiVersion: '2024-06-20',
 });
 
 admin.initializeApp();
+
+// ID Twoich cen (Te same co na frontendzie - potrzebne do wyliczenia dni przy BLIKu)
+const PRICE_IDS = {
+    MONTHLY: 'price_1Suf3OB04sIrbcnlndeX0zVh', 
+    YEARLY: 'price_1Suf41B04sIrbcnlJr0QqJ9m'
+};
 
 // ✅ POMOCNICZA: Bezpieczna konwersja timestamp
 const toFirestoreTimestamp = (seconds) => {
@@ -23,9 +30,7 @@ const toFirestoreTimestamp = (seconds) => {
 async function findUidByCustomerId(customerId) {
     const usersRef = admin.firestore().collection('users');
     const snapshot = await usersRef.where('stripeCustomerId', '==', customerId).limit(1).get();
-    if (snapshot.empty) {
-        return null;
-    }
+    if (snapshot.empty) return null;
     return snapshot.docs[0].id;
 }
 
@@ -35,15 +40,15 @@ const ALLOWED_ORIGINS = [
 ];
 
 /**
- * Funkcja 1: Tworzenie sesji Checkout (Miesięczny lub Roczny)
+ * Funkcja 1: Tworzenie sesji Checkout (Hybrydowa: Karta lub BLIK)
  */
 exports.createStripeCheckout = onCall({ cors: ALLOWED_ORIGINS }, async (request) => {
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "Musisz być zalogowany.");
   }
 
+  // Frontend wysyła: priceId oraz mode ('subscription' lub 'payment')
   const { priceId, mode } = request.data; 
-  // UWAGA: Teraz mode powinno być ZAWSZE 'subscription' (dla obu planów)
   
   const YOUR_DOMAIN = process.env.APP_DOMAIN || "https://qalqly.woodlygroup.pl"; 
   const userId = request.auth.uid;
@@ -66,34 +71,58 @@ exports.createStripeCheckout = onCall({ cors: ALLOWED_ORIGINS }, async (request)
       });
     }
 
-    // Zapisz ID klienta w bazie, żeby webhook wiedział czyje to konto
     const userRef = admin.firestore().collection('users').doc(userId);
     await userRef.set({ stripeCustomerId: customer.id }, { merge: true });
 
-    // 2. Konfiguracja sesji
+    // 2. LOGIKA WYBORU METOD PŁATNOŚCI (Zamiast automatic_payment_methods)
+    let paymentMethods = ['card']; // Domyślnie tylko karta
+    let sessionMode = 'subscription';
+    let accessDays = 30; // Domyślnie
+
+    if (mode === 'payment') {
+        // Jeśli klient wybrał jednorazowo -> włączamy BLIK i P24
+        paymentMethods = ['card', 'blik', 'p24'];
+        sessionMode = 'payment';
+
+        // Ustalamy ile dni dostępu dać (dla Webhooka)
+        if (priceId === PRICE_IDS.YEARLY) accessDays = 365;
+    }
+
+    // 3. Konfiguracja sesji
     const sessionParams = {
-      // ✅ ZMIANA: Włączamy 'automatic_payment_methods' -> to pozwoli na BLIK/P24 jeśli włączyłaś je w Stripe Dashboard
-      automatic_payment_methods: { enabled: true },
-      mode: 'subscription', // Wymuszamy tryb subskrypcji dla obu planów
+      customer: customer.id,
+      client_reference_id: userId,
+      
+      // RĘCZNE DEFINIOWANIE METOD (Najbezpieczniejsza opcja)
+      payment_method_types: paymentMethods,
+      
+      mode: sessionMode,
       line_items: [{ price: priceId, quantity: 1 }],
+      
       success_url: `${YOUR_DOMAIN}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${YOUR_DOMAIN}/subscribe?canceled=true`,
-      customer: customer.id, 
-      client_reference_id: userId,
-      metadata: { userId: userId },
-      // Wymuszamy pobieranie adresu do faktury (wymóg prawny B2B)
+      
       billing_address_collection: 'required',
+      allow_promotion_codes: true,
+
+      metadata: { 
+          userId: userId,
+          // Przekazujemy info o długości dostępu (potrzebne tylko dla BLIKa)
+          accessDays: accessDays.toString() 
+      },
     };
     
-    // Opcjonalnie: Trial 7 dni (działa tylko jeśli użytkownik nie korzystał wcześniej)
-    // Jeśli chcesz trial tylko dla miesięcznego, możesz dodać warunek if (priceId === 'ID_MIESIECZNEGO')
-    sessionParams.subscription_data = {
-        trial_period_days: 7, 
-        metadata: { userId: userId }
-    };
-    
-    // Zapisanie karty na przyszłość (dla subskrypcji jest to domyślne, ale warto ustawić)
-    sessionParams.payment_method_collection = 'always';
+    // Opcje specyficzne dla SUBSKRYPCJI
+    if (sessionMode === 'subscription') {
+        sessionParams.payment_method_collection = 'always';
+        sessionParams.subscription_data = {
+            metadata: { userId: userId }
+        };
+    } 
+    // Opcje specyficzne dla JEDNORAZOWYCH (BLIK)
+    else if (sessionMode === 'payment') {
+        sessionParams.invoice_creation = { enabled: true };
+    }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
     return { id: session.id };
@@ -106,35 +135,33 @@ exports.createStripeCheckout = onCall({ cors: ALLOWED_ORIGINS }, async (request)
 });
 
 /**
- * Funkcja 2: Portal Klienta (Zarządzanie subskrypcją / fakturami)
+ * Funkcja 2: Portal Klienta
  */
 exports.createPortalLink = onCall({ cors: true }, async (request) => {
-    if (!request.auth) {
-      throw new HttpsError("unauthenticated", "Musisz być zalogowany.");
-    }
+    if (!request.auth) throw new HttpsError("unauthenticated", "Musisz być zalogowany.");
+    
     const YOUR_DOMAIN = process.env.APP_DOMAIN || "https://qalqly.woodlygroup.pl";
-    try {
-      const uid = request.auth.uid;
-      const userDoc = await admin.firestore().collection("users").doc(uid).get();
+    const uid = request.auth.uid;
+    const userDoc = await admin.firestore().collection("users").doc(uid).get();
+    const stripeCustomerId = userDoc.data()?.stripeCustomerId;
 
-      const stripeCustomerId = userDoc.data()?.stripeCustomerId;
-      if (!stripeCustomerId) {
-        throw new HttpsError("not-found", "Nie znaleziono konta klienta Stripe.");
-      }
+    if (!stripeCustomerId) throw new HttpsError("not-found", "Nie znaleziono konta klienta Stripe.");
+
+    try {
       const portalSession = await stripe.billingPortal.sessions.create({
         customer: stripeCustomerId,
         return_url: `${YOUR_DOMAIN}/company-settings`,
       });
       return { url: portalSession.url };
     } catch (error) {
-      logger.error("Błąd tworzenia sesji portalu:", error);
+      logger.error("Błąd portalu:", error);
       throw new HttpsError("internal", error.message);
     }
 });
 
 
 /**
- * Funkcja 3: Webhook (Kluczowa dla aktualizacji statusu w bazie)
+ * Funkcja 3: Webhook
  */
 exports.stripeWebhook = onRequest(async (req, res) => {
   const signature = req.headers["stripe-signature"];
@@ -144,7 +171,7 @@ exports.stripeWebhook = onRequest(async (req, res) => {
   try {
     event = stripe.webhooks.constructEvent(req.rawBody, signature, endpointSecret);
   } catch (err) {
-    logger.error("Błąd weryfikacji webhooka:", err.message);
+    logger.error("Błąd webhooka:", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
@@ -152,84 +179,86 @@ exports.stripeWebhook = onRequest(async (req, res) => {
 
   try {
     switch (event.type) {
-      // ✅ OBSŁUGA SUBSKRYPCJI (TWORZENIE / AKTUALIZACJA / ANULOWANIE)
+      
+      // 🟢 A. SUBSKRYPCJA (KARTA)
       case 'customer.subscription.created':
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted': {
         const subscription = dataObject;
-        const customerId = subscription.customer;
-        
-        const userId = await findUidByCustomerId(customerId);
+        const userId = await findUidByCustomerId(subscription.customer);
 
         if (userId) {
             const userRef = admin.firestore().collection('users').doc(userId);
             
-            // Mapowanie statusów Stripe na statusy aplikacji
-            // 'active', 'trialing' -> dostęp
-            // 'past_due', 'canceled', 'unpaid' -> brak dostępu
+            // Zapisz status subskrypcji
+            await userRef.set({ 
+                subscription: {
+                    status: subscription.status,
+                    priceId: subscription.items?.data?.[0]?.price?.id || null,
+                    current_period_end: toFirestoreTimestamp(subscription.current_period_end),
+                    cancel_at_period_end: subscription.cancel_at_period_end
+                }
+            }, { merge: true });
             
-            const subscriptionData = {
-                status: subscription.status,
-                priceId: subscription.items?.data?.[0]?.price?.id || null,
-                customerId: customerId,
-                trial_end: toFirestoreTimestamp(subscription.trial_end),
-                current_period_end: toFirestoreTimestamp(subscription.current_period_end),
-                cancel_at_period_end: subscription.cancel_at_period_end // Czy anulowano na koniec okresu?
-            };
-
-            await userRef.set({ subscription: subscriptionData }, { merge: true });
-            
-            // ✅ WAŻNE: Aktualizacja daty wygaśnięcia dostępu w głównym dokumencie usera
-            // Dzięki temu ProtectedRoute.jsx działa szybciej bez zagłębiania się w obiekt subscription
-            if (subscription.status === 'active' || subscription.status === 'trialing') {
-                 // Ustawiamy datę końca okresu jako accessExpiresAt
+            // Jeśli aktywna -> ustawiamy globalny dostęp
+            if (['active', 'trialing'].includes(subscription.status)) {
                  await userRef.set({ 
-                     accessExpiresAt: toFirestoreTimestamp(subscription.current_period_end) 
+                      accessExpiresAt: toFirestoreTimestamp(subscription.current_period_end) 
                  }, { merge: true });
             }
-
-            logger.info(`Status subskrypcji zaktualizowany dla ${userId}: ${subscription.status}`);
-        } else {
-             logger.warn(`Nie znaleziono UID dla Customer ID: ${customerId}. Webhook ignorowany.`);
+            
+            logger.info(`Subskrypcja zaktualizowana dla ${userId}: ${subscription.status}`);
         }
         break;
       }
 
-      // ✅ OBSŁUGA ZAKOŃCZENIA SESJI CHECKOUT
-      // Przydatne do powiązania Customer ID przy pierwszej płatności
+      // 🔵 B. PŁATNOŚĆ JEDNORAZOWA (BLIK / P24)
       case 'checkout.session.completed': {
         const session = dataObject;
+        // userId bierzemy z client_reference_id (ustawione w createStripeCheckout)
         const userId = session.client_reference_id || session.metadata.userId;
         
         if (userId) {
             const userRef = admin.firestore().collection('users').doc(userId);
-            // Zapisujemy ID klienta, żeby kolejne webhooki działały
+            
+            // Zapisz Stripe Customer ID (przydatne na przyszłość)
             await userRef.set({ stripeCustomerId: session.customer }, { merge: true });
-            logger.info(`Checkout zakończony. Powiązano klienta ${session.customer} z userem ${userId}`);
+
+            // Jeśli to płatność jednorazowa (BLIK/P24)
+            if (session.mode === 'payment' && session.payment_status === 'paid') {
+                
+                // Odczytujemy, na ile dni dać dostęp (z metadanych)
+                const daysToAdd = parseInt(session.metadata.accessDays || '30');
+                
+                // Obliczamy datę wygaśnięcia
+                const now = new Date();
+                const newExpiryDate = new Date(now.setDate(now.getDate() + daysToAdd));
+                
+                await userRef.set({
+                    accessExpiresAt: admin.firestore.Timestamp.fromDate(newExpiryDate),
+                    // Ustawiamy status 'manual_paid', żeby frontend wiedział, że jest OK
+                    subscription: { status: 'manual_paid' } 
+                }, { merge: true });
+
+                logger.info(`BLIK/P24: Przyznano dostęp dla ${userId} na ${daysToAdd} dni.`);
+            }
         }
         break;
       }
       
-      // ✅ OBSŁUGA NIEUDANEJ PŁATNOŚCI (np. karta odrzucona przy odnowieniu)
+      // 🔴 C. BŁĄD PŁATNOŚCI
       case 'invoice.payment_failed': {
-          const invoice = dataObject;
-          const customerId = invoice.customer;
-          const userId = await findUidByCustomerId(customerId);
-          
-          if (userId) {
-              logger.warn(`Płatność nieudana dla usera ${userId}. Subskrypcja może przejść w stan past_due.`);
-              // Tutaj można dodać logikę wysyłania maila do klienta
-          }
+          const userId = await findUidByCustomerId(dataObject.customer);
+          if (userId) logger.warn(`Płatność nieudana dla usera ${userId}`);
           break;
       }
 
       default:
-        res.status(200).send();
-        return;
+        break;
     }
   } catch (error) {
-    logger.error('KRYTYCZNY BŁĄD W WEBHOOKU:', error);
-    return res.status(500).send('Błąd serwera wewnętrznego.');
+    logger.error('BŁĄD W WEBHOOKU:', error);
+    return res.status(500).send('Błąd serwera.');
   }
 
   res.status(200).send();
