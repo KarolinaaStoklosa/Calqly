@@ -14,47 +14,55 @@ export const MaterialsProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Jeśli użytkownik nie jest zalogowany, używamy domyślnych danych i kończymy.
+    // Jeśli użytkownik nie jest zalogowany, używamy domyślnych danych.
     if (!currentUser) {
       setMaterials(DROPDOWN_DATA);
       setLoading(false);
       return;
     }
 
-    // Jeśli jest zalogowany, ustawiamy nasłuchiwanie na jego bibliotece materiałów.
+    // Nasłuchiwanie zmian w bibliotece użytkownika
     const docRef = doc(db, 'users', currentUser.uid, 'materials', 'library');
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
-        // Jeśli biblioteka istnieje w chmurze, wczytujemy ją.
-        setMaterials(docSnap.data());
+        // Łączymy dane użytkownika z domyślnymi (żeby nowe kategorie się nie gubiły)
+        setMaterials(prev => ({
+          ...DROPDOWN_DATA,
+          ...docSnap.data()
+        }));
       } else {
-        // Jeśli nie istnieje (np. dla nowego użytkownika), tworzymy ją z domyślnych danych.
-        console.log("Tworzenie domyślnej biblioteki materiałów dla użytkownika...");
-        setDoc(docRef, DROPDOWN_DATA);
+        // Tworzenie biblioteki dla nowego usera
+        setDoc(docRef, DROPDOWN_DATA).catch(console.error);
         setMaterials(DROPDOWN_DATA);
       }
       setLoading(false);
     }, (error) => {
-      // Obsługa błędów, np. uprawnień
       console.error("Błąd wczytywania materiałów:", error);
       setLoading(false);
     });
 
-    return () => unsubscribe(); // Ważne: czyścimy nasłuchiwanie po odmontowaniu komponentu
+    return () => unsubscribe();
   }, [currentUser]);
 
-  const updateMaterials = async (newMaterials) => {
-    // Aktualizujemy stan lokalnie, aby interfejs był szybki
-    setMaterials(newMaterials);
-    // Jeśli użytkownik jest zalogowany, zapisujemy zmiany w chmurze
-    if (currentUser) {
-      const docRef = doc(db, 'users', currentUser.uid, 'materials', 'library');
-      try {
-        await setDoc(docRef, newMaterials);
-      } catch (error) {
-        console.error("Błąd zapisu materiałów:", error);
-        // Można tu dodać logikę przywracania poprzedniego stanu w razie błędu
-      }
+  // ✅ NAPRAWIONA FUNKCJA ZAPISU
+  // Teraz przyjmuje dwa argumenty: kategorię i listę elementów
+  const updateMaterials = async (category, newItems) => {
+    if (!currentUser) return;
+
+    const docRef = doc(db, 'users', currentUser.uid, 'materials', 'library');
+
+    try {
+      // Zapisujemy obiekt w formacie: { "drzwiPrzesuwne": [...] }
+      // Używamy merge: true, aby nie skasować innych kategorii
+      await setDoc(docRef, {
+        [category]: newItems
+      }, { merge: true });
+      
+      // Uwaga: Nie musimy ręcznie robić setMaterials, bo onSnapshot powyżej
+      // sam wykryje zmianę w bazie i zaktualizuje stan aplikacji automatycznie.
+    } catch (error) {
+      console.error("Błąd zapisu materiałów:", error);
+      throw error; // Rzucamy błąd dalej, żeby MaterialsManager mógł wyświetlić alert
     }
   };
 

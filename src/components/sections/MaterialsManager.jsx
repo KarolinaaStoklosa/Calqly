@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMaterials } from '../../context/MaterialContext';
-import { Plus, Trash2, Edit, Loader2, Info, Search } from 'lucide-react';
+import { Plus, Trash2, Edit, Loader2, Info, Search, X } from 'lucide-react';
 
 const CATEGORY_NAMES = {
   plytyMeblowe: "Płyty Meblowe",
@@ -21,73 +21,90 @@ const MaterialsManager = () => {
   const [activeCategory, setActiveCategory] = useState('plytyMeblowe');
   const [editingItem, setEditingItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleAddItem = () => {
     const newItem = {
-      isNew: true, // Flaga oznaczająca nowy element
+      isNew: true,
       nazwa: '',
-      cena: '', // Pusty string na start dla inputa
+      cena: '', 
       opis: '',
       kategoria: activeCategory,
     };
     setEditingItem(newItem);
   };
 
-  // Edycja: Przygotowujemy obiekt do formularza
   const handleEditItem = (item, realIndex) => {
     setEditingItem({ 
         ...item, 
-        originalIndex: realIndex, // Zapamiętujemy PRAWDZIWY indeks z bazy
-        isNew: false 
+        originalIndex: realIndex, 
+        isNew: false,
+        // Konwertujemy cenę na string, żeby edycja była łatwiejsza
+        cena: item.cena !== undefined ? item.cena.toString().replace('.', ',') : '' 
     });
   };
 
   const handleSaveItem = async (e) => {
     e.preventDefault();
     if (!editingItem) return;
+    setIsSaving(true);
 
-    // Pobieramy aktualną listę z bazy
-    const currentList = [...(materials[activeCategory] || [])];
+    try {
+        // 1. Bezpieczna kopia listy
+        const currentList = Array.from(materials[activeCategory] || []);
 
-    // Przygotowujemy obiekt do zapisu (czyszczenie śmieci i formatowanie liczb)
-    const itemToSave = {
-        nazwa: editingItem.nazwa,
-        opis: editingItem.opis || '',
-        cena: parseFloat(editingItem.cena) || 0, // Konwersja przy zapisie
-        kategoria: editingItem.kategoria || activeCategory
-    };
+        // 2. Naprawa Ceny (Polska waluta: zamiana przecinka na kropkę)
+        let priceString = editingItem.cena.toString().replace(',', '.');
+        let finalPrice = parseFloat(priceString);
 
-    if (editingItem.isNew) {
-        // Dodawanie nowego na koniec listy
-        currentList.push(itemToSave);
-    } else {
-        // Aktualizacja istniejącego pod JEGO oryginalnym indeksem
-        if (typeof editingItem.originalIndex === 'number' && editingItem.originalIndex >= 0) {
-            currentList[editingItem.originalIndex] = itemToSave;
+        if (isNaN(finalPrice)) finalPrice = 0;
+
+        // 3. Obiekt do zapisu
+        const itemToSave = {
+            nazwa: editingItem.nazwa.trim(),
+            opis: editingItem.opis ? editingItem.opis.trim() : '',
+            cena: finalPrice,
+            kategoria: editingItem.kategoria || activeCategory
+        };
+
+        if (editingItem.isNew) {
+            currentList.push(itemToSave);
         } else {
-            console.error("Błąd indeksu elementu!");
-            return;
+            if (typeof editingItem.originalIndex === 'number' && editingItem.originalIndex >= 0) {
+                currentList[editingItem.originalIndex] = itemToSave;
+            } else {
+                throw new Error("Błąd indeksu elementu");
+            }
         }
-    }
 
-    // Zapis do Firebase/Contextu
-    await updateMaterials(activeCategory, currentList);
-    setEditingItem(null);
+        // 4. Zapis do Firebase (teraz zadziała poprawnie z nowym Contextem)
+        await updateMaterials(activeCategory, currentList);
+        
+        setEditingItem(null);
+    } catch (error) {
+        console.error("Błąd zapisu:", error);
+        alert("Wystąpił błąd podczas zapisu. Sprawdź konsolę.");
+    } finally {
+        setIsSaving(false);
+    }
   };
 
   const handleDeleteItem = async (realIndex) => {
     if (window.confirm("Czy na pewno chcesz usunąć ten materiał?")) {
-        const currentList = [...(materials[activeCategory] || [])];
-        // Usuwamy element pod konkretnym indeksem
-        currentList.splice(realIndex, 1);
-        await updateMaterials(activeCategory, currentList);
+        try {
+            const currentList = Array.from(materials[activeCategory] || []);
+            currentList.splice(realIndex, 1);
+            await updateMaterials(activeCategory, currentList);
+        } catch (error) {
+            console.error("Błąd usuwania:", error);
+            alert("Nie udało się usunąć elementu.");
+        }
     }
   };
 
-  // --- LOGIKA WYSZUKIWANIA I MAPOWANIA ---
-  // Najważniejsze: Najpierw mapujemy, dodając originalIndex, a dopiero potem filtrujemy!
+  // Filtrowanie z zachowaniem oryginalnych indeksów
   const filteredItems = (materials[activeCategory] || [])
-    .map((item, index) => ({ ...item, originalIndex: index })) // Przypisanie stałego indeksu
+    .map((item, index) => ({ ...item, originalIndex: index }))
     .filter(item => {
         const term = searchTerm.toLowerCase();
         const nazwa = (item.nazwa || '').toLowerCase();
@@ -120,7 +137,7 @@ const MaterialsManager = () => {
 
         {/* CONTENT */}
         <div className="flex flex-1 overflow-hidden">
-            {/* SIDEBAR KATEGORII */}
+            {/* SIDEBAR */}
             <div className="w-64 bg-gray-50 border-r border-gray-200 overflow-y-auto p-4 flex flex-col gap-1">
                 {Object.keys(CATEGORY_NAMES).map((catKey) => (
                     <button
@@ -140,10 +157,8 @@ const MaterialsManager = () => {
                 ))}
             </div>
 
-            {/* TABELA MATERIAŁÓW */}
+            {/* TABELA */}
             <div className="flex-1 overflow-y-auto p-6 bg-white relative">
-                
-                {/* PASEK WYSZUKIWANIA */}
                 <div className="mb-4 relative max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                     <input 
@@ -168,7 +183,7 @@ const MaterialsManager = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
-                                {filteredItems.map((item, idx) => (
+                                {filteredItems.map((item) => (
                                     <tr key={`${item.nazwa}-${item.originalIndex}`} className="hover:bg-blue-50/50 transition-colors group">
                                         <td className="px-4 py-3 text-center text-gray-400 font-mono text-xs">
                                             {item.originalIndex + 1}
@@ -176,7 +191,7 @@ const MaterialsManager = () => {
                                         <td className="px-4 py-3 font-medium text-gray-900">{item.nazwa}</td>
                                         <td className="px-4 py-3 text-gray-500">{item.opis || '-'}</td>
                                         <td className="px-4 py-3 text-right font-mono font-medium text-blue-600">
-                                            {Number(item.cena).toFixed(2)} zł
+                                            {typeof item.cena === 'number' ? item.cena.toFixed(2) : parseFloat(item.cena || 0).toFixed(2)} zł
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -205,15 +220,12 @@ const MaterialsManager = () => {
                     <div className="flex flex-col items-center justify-center h-64 text-gray-400 border-2 border-dashed border-gray-100 rounded-xl bg-gray-50/30">
                         <Search size={48} className="mb-4 opacity-20" />
                         <p className="text-lg font-medium text-gray-500">Brak wyników</p>
-                        {searchTerm && (
-                            <p className="text-sm">Dla frazy: "{searchTerm}"</p>
-                        )}
                     </div>
                 )}
             </div>
         </div>
 
-        {/* MODAL EDYCJI / DODAWANIA */}
+        {/* MODAL */}
         {editingItem && (
             <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                 <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
@@ -221,7 +233,13 @@ const MaterialsManager = () => {
                         <h3 className="font-bold text-gray-900">
                             {editingItem.isNew ? 'Dodaj nowy materiał' : 'Edytuj materiał'}
                         </h3>
-                        <button onClick={() => setEditingItem(null)} className="text-gray-400 hover:text-gray-600">✕</button>
+                        <button 
+                            onClick={() => !isSaving && setEditingItem(null)} 
+                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                            disabled={isSaving}
+                        >
+                            <X size={20} />
+                        </button>
                     </div>
                     
                     <form onSubmit={handleSaveItem} className="p-6 space-y-4">
@@ -234,6 +252,7 @@ const MaterialsManager = () => {
                                 onChange={(e) => setEditingItem({...editingItem, nazwa: e.target.value})}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                                 placeholder="Np. Płyta Dąb Sonoma"
+                                disabled={isSaving}
                             />
                         </div>
 
@@ -241,15 +260,21 @@ const MaterialsManager = () => {
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Cena (PLN)</label>
                                 <input 
-                                    type="number" 
+                                    type="text" 
+                                    inputMode="decimal"
                                     required
-                                    step="0.01" // Pozwala na grosze
-                                    min="0"
-                                    // Nie parsujemy od razu do liczby, żeby dało się wpisać przecinek/kropkę
+                                    placeholder="0.00"
                                     value={editingItem.cena}
-                                    onChange={(e) => setEditingItem({...editingItem, cena: e.target.value})}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (/^[0-9.,]*$/.test(val)) {
+                                            setEditingItem({...editingItem, cena: val});
+                                        }
+                                    }}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono"
+                                    disabled={isSaving}
                                 />
+                                <p className="text-[10px] text-gray-400 mt-1">Możesz używać kropki lub przecinka</p>
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Opis / Kod</label>
@@ -259,6 +284,7 @@ const MaterialsManager = () => {
                                     onChange={(e) => setEditingItem({...editingItem, opis: e.target.value})}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                                     placeholder="Np. K001"
+                                    disabled={isSaving}
                                 />
                             </div>
                         </div>
@@ -266,7 +292,7 @@ const MaterialsManager = () => {
                         {/* Opcje specjalne dla Okleiny */}
                         {activeCategory === 'okleina' && (
                             <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
-                                <label className="block text-xs font-bold text-blue-700 uppercase tracking-wide mb-2">Typ pozycji (Dla kalkulatora)</label>
+                                <label className="block text-xs font-bold text-blue-700 uppercase tracking-wide mb-2">Typ pozycji</label>
                                 <div className="flex gap-4 text-sm">
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input 
@@ -275,8 +301,9 @@ const MaterialsManager = () => {
                                             checked={editingItem.kategoria !== 'usluga'}
                                             onChange={() => setEditingItem({...editingItem, kategoria: 'material'})}
                                             className="text-blue-600 focus:ring-blue-500"
+                                            disabled={isSaving}
                                         />
-                                        <span>Fizyczny materiał</span>
+                                        <span>Materiał</span>
                                     </label>
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input 
@@ -285,28 +312,20 @@ const MaterialsManager = () => {
                                             checked={editingItem.kategoria === 'usluga'}
                                             onChange={() => setEditingItem({...editingItem, kategoria: 'usluga'})}
                                             className="text-blue-600 focus:ring-blue-500"
+                                            disabled={isSaving}
                                         />
-                                        <span>Usługa (Cięcie/Oklejanie)</span>
+                                        <span>Usługa (np. Cięcie)</span>
                                     </label>
-                                </div>
-                                <div className="mt-2 text-xs text-blue-600 flex gap-2 items-start">
-                                    <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                                    {editingItem.kategoria !== 'usluga' ? (
-                                        <p>
-                                            Wybierz dla nowych oklein. System automatycznie doliczy koszty usług.
-                                        </p>
-                                    ) : (
-                                        <p>
-                                            Wybierz <strong>tylko dla usług technicznych</strong> (np. "KOSZT CIĘCIA").
-                                        </p>
-                                    )}
                                 </div>
                             </div>
                         )}
 
                         <div className="flex justify-end gap-3 pt-6 border-t border-gray-100 mt-6">
-                            <button type="button" onClick={() => setEditingItem(null)} className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors">Anuluj</button>
-                            <button type="submit" className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition-colors">Zapisz zmiany</button>
+                            <button type="button" onClick={() => setEditingItem(null)} className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors" disabled={isSaving}>Anuluj</button>
+                            <button type="submit" disabled={isSaving} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2">
+                                {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
+                                {isSaving ? 'Zapisywanie...' : 'Zapisz zmiany'}
+                            </button>
                         </div>
                     </form>
                 </div>
