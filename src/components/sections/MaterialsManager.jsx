@@ -20,60 +20,80 @@ const MaterialsManager = () => {
   const { materials, updateMaterials, loading } = useMaterials();
   const [activeCategory, setActiveCategory] = useState('plytyMeblowe');
   const [editingItem, setEditingItem] = useState(null);
-  const [searchTerm, setSearchTerm] = useState(''); // ✅ 1. Stan dla wyszukiwarki
+  const [searchTerm, setSearchTerm] = useState('');
 
   const handleAddItem = () => {
     const newItem = {
-      id: null, // Tymczasowe ID do rozróżnienia dodawania od edycji
-      nazwa: 'Nowy Materiał',
-      cena: 0,
+      isNew: true, // Flaga oznaczająca nowy element
+      nazwa: '',
+      cena: '', // Pusty string na start dla inputa
       opis: '',
-      kategoria: activeCategory, // Domyślna kategoria zgodna z aktywną zakładką
+      kategoria: activeCategory,
     };
     setEditingItem(newItem);
   };
 
-  const handleEditItem = (item, index) => {
-    setEditingItem({ ...item, originalIndex: index });
+  // Edycja: Przygotowujemy obiekt do formularza
+  const handleEditItem = (item, realIndex) => {
+    setEditingItem({ 
+        ...item, 
+        originalIndex: realIndex, // Zapamiętujemy PRAWDZIWY indeks z bazy
+        isNew: false 
+    });
   };
 
   const handleSaveItem = async (e) => {
     e.preventDefault();
     if (!editingItem) return;
 
-    // Kopia obecnej listy kategorii
+    // Pobieramy aktualną listę z bazy
     const currentList = [...(materials[activeCategory] || [])];
 
-    if (editingItem.id === null) {
-        // Dodawanie nowego
-        // Usuwamy pomocnicze pola (id) przed zapisem
-        const { id, originalIndex, ...itemToSave } = editingItem;
+    // Przygotowujemy obiekt do zapisu (czyszczenie śmieci i formatowanie liczb)
+    const itemToSave = {
+        nazwa: editingItem.nazwa,
+        opis: editingItem.opis || '',
+        cena: parseFloat(editingItem.cena) || 0, // Konwersja przy zapisie
+        kategoria: editingItem.kategoria || activeCategory
+    };
+
+    if (editingItem.isNew) {
+        // Dodawanie nowego na koniec listy
         currentList.push(itemToSave);
     } else {
-        // Edycja istniejącego
-        const { id, originalIndex, ...itemToSave } = editingItem;
-        currentList[originalIndex] = itemToSave;
+        // Aktualizacja istniejącego pod JEGO oryginalnym indeksem
+        if (typeof editingItem.originalIndex === 'number' && editingItem.originalIndex >= 0) {
+            currentList[editingItem.originalIndex] = itemToSave;
+        } else {
+            console.error("Błąd indeksu elementu!");
+            return;
+        }
     }
 
-    // Aktualizacja w kontekście (i w Firebase)
+    // Zapis do Firebase/Contextu
     await updateMaterials(activeCategory, currentList);
     setEditingItem(null);
   };
 
-  const handleDeleteItem = async (index) => {
+  const handleDeleteItem = async (realIndex) => {
     if (window.confirm("Czy na pewno chcesz usunąć ten materiał?")) {
         const currentList = [...(materials[activeCategory] || [])];
-        currentList.splice(index, 1);
+        // Usuwamy element pod konkretnym indeksem
+        currentList.splice(realIndex, 1);
         await updateMaterials(activeCategory, currentList);
     }
   };
 
-  // ✅ 2. Logika Filtrowania
-  const filteredItems = (materials[activeCategory] || []).map((item, index) => ({ ...item, originalIndex: index }))
-    .filter(item => 
-        item.nazwa.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        (item.opis && item.opis.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+  // --- LOGIKA WYSZUKIWANIA I MAPOWANIA ---
+  // Najważniejsze: Najpierw mapujemy, dodając originalIndex, a dopiero potem filtrujemy!
+  const filteredItems = (materials[activeCategory] || [])
+    .map((item, index) => ({ ...item, originalIndex: index })) // Przypisanie stałego indeksu
+    .filter(item => {
+        const term = searchTerm.toLowerCase();
+        const nazwa = (item.nazwa || '').toLowerCase();
+        const opis = (item.opis || '').toLowerCase();
+        return nazwa.includes(term) || opis.includes(term);
+    });
 
   if (loading) {
       return (
@@ -105,7 +125,7 @@ const MaterialsManager = () => {
                 {Object.keys(CATEGORY_NAMES).map((catKey) => (
                     <button
                         key={catKey}
-                        onClick={() => { setActiveCategory(catKey); setSearchTerm(''); }} // Reset search przy zmianie kategorii
+                        onClick={() => { setActiveCategory(catKey); setSearchTerm(''); }}
                         className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 
                             ${activeCategory === catKey 
                                 ? 'bg-white text-blue-700 shadow-sm ring-1 ring-gray-200' 
@@ -123,12 +143,12 @@ const MaterialsManager = () => {
             {/* TABELA MATERIAŁÓW */}
             <div className="flex-1 overflow-y-auto p-6 bg-white relative">
                 
-                {/* ✅ 3. PASEK WYSZUKIWANIA */}
+                {/* PASEK WYSZUKIWANIA */}
                 <div className="mb-4 relative max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                     <input 
                         type="text" 
-                        placeholder="Szukaj materiału..." 
+                        placeholder="Szukaj po nazwie lub kodzie..." 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm transition-all"
@@ -149,12 +169,14 @@ const MaterialsManager = () => {
                             </thead>
                             <tbody className="divide-y divide-gray-100">
                                 {filteredItems.map((item, idx) => (
-                                    <tr key={idx} className="hover:bg-blue-50/50 transition-colors group">
-                                        <td className="px-4 py-3 text-center text-gray-400 font-mono text-xs">{idx + 1}</td>
+                                    <tr key={`${item.nazwa}-${item.originalIndex}`} className="hover:bg-blue-50/50 transition-colors group">
+                                        <td className="px-4 py-3 text-center text-gray-400 font-mono text-xs">
+                                            {item.originalIndex + 1}
+                                        </td>
                                         <td className="px-4 py-3 font-medium text-gray-900">{item.nazwa}</td>
                                         <td className="px-4 py-3 text-gray-500">{item.opis || '-'}</td>
                                         <td className="px-4 py-3 text-right font-mono font-medium text-blue-600">
-                                            {typeof item.cena === 'number' ? item.cena.toFixed(2) : item.cena} zł
+                                            {Number(item.cena).toFixed(2)} zł
                                         </td>
                                         <td className="px-4 py-3">
                                             <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -182,11 +204,9 @@ const MaterialsManager = () => {
                 ) : (
                     <div className="flex flex-col items-center justify-center h-64 text-gray-400 border-2 border-dashed border-gray-100 rounded-xl bg-gray-50/30">
                         <Search size={48} className="mb-4 opacity-20" />
-                        <p className="text-lg font-medium text-gray-500">Brak materiałów</p>
-                        {searchTerm ? (
-                            <p className="text-sm">Nie znaleziono pozycji pasujących do "{searchTerm}"</p>
-                        ) : (
-                            <p className="text-sm">W tej kategorii nie ma jeszcze żadnych pozycji.</p>
+                        <p className="text-lg font-medium text-gray-500">Brak wyników</p>
+                        {searchTerm && (
+                            <p className="text-sm">Dla frazy: "{searchTerm}"</p>
                         )}
                     </div>
                 )}
@@ -199,7 +219,7 @@ const MaterialsManager = () => {
                 <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
                     <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
                         <h3 className="font-bold text-gray-900">
-                            {editingItem.id === null ? 'Dodaj nowy materiał' : 'Edytuj materiał'}
+                            {editingItem.isNew ? 'Dodaj nowy materiał' : 'Edytuj materiał'}
                         </h3>
                         <button onClick={() => setEditingItem(null)} className="text-gray-400 hover:text-gray-600">✕</button>
                     </div>
@@ -223,15 +243,16 @@ const MaterialsManager = () => {
                                 <input 
                                     type="number" 
                                     required
-                                    step="0.01"
+                                    step="0.01" // Pozwala na grosze
                                     min="0"
+                                    // Nie parsujemy od razu do liczby, żeby dało się wpisać przecinek/kropkę
                                     value={editingItem.cena}
-                                    onChange={(e) => setEditingItem({...editingItem, cena: parseFloat(e.target.value) || 0})}
+                                    onChange={(e) => setEditingItem({...editingItem, cena: e.target.value})}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Opis / Kod (Opcjonalnie)</label>
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Opis / Kod</label>
                                 <input 
                                     type="text" 
                                     value={editingItem.opis || ''}
@@ -272,11 +293,11 @@ const MaterialsManager = () => {
                                     <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
                                     {editingItem.kategoria !== 'usluga' ? (
                                         <p>
-                                            Wybierz tę opcję dla nowych oklein. W kalkulacji szafek system <strong>automatycznie doliczy</strong> do ceny tego materiału zdefiniowane koszty usług (cięcie + oklejanie).
+                                            Wybierz dla nowych oklein. System automatycznie doliczy koszty usług.
                                         </p>
                                     ) : (
                                         <p>
-                                            Wybierz tę opcję <strong>tylko dla pozycji technicznych</strong> (np. "KOSZT CIĘCIA"). Te pozycje będą ukryte na liście wyboru w szafkach, ale są niezbędne do obliczeń w tle.
+                                            Wybierz <strong>tylko dla usług technicznych</strong> (np. "KOSZT CIĘCIA").
                                         </p>
                                     )}
                                 </div>
