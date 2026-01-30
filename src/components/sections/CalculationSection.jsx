@@ -47,7 +47,7 @@ const CalculationSection = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <StatCard title="Materiały bazowe" value={formatPrice(totals.materialsTotal)} color="blue" />
             <StatCard title="Koszty dodatkowe" value={formatPrice(totals.additionalTotal)} color="green" />
-            <StatCard title={`Marża (${settings.margin}%)`} value={formatPrice(totals.marginAmount)} color="purple" />
+            <StatCard title={`Narzut (${settings.margin}%)`} value={formatPrice(totals.marginAmount)} color="purple" />
             <StatCard title="CENA KOŃCOWA" value={formatPrice(totals.grossTotal)} color="red" isLarge={true} />
         </div>
         
@@ -63,7 +63,7 @@ const CalculationSection = () => {
                 <div className="space-y-1 mt-4 lg:mt-0">
                     <BreakdownRow label="Tył HDF:" value={formatPrice(totals.hdfCost)} />
                     <BreakdownRow label="Odpady:" value={formatPrice(totals.wasteDetails.korpusy + totals.wasteDetails.fronty + totals.wasteDetails.frontyNaBok)} />
-                    <BreakdownRow label={`Marża (${settings.margin}%):`} value={formatPrice(totals.marginAmount)}  isBold />
+                    <BreakdownRow label={`Narzut (${settings.margin}%):`} value={formatPrice(totals.marginAmount)}  isBold />
                     <BreakdownRow label="Pozycje niemarżowane:" value={formatPrice(totals.nonMarginableTotal)} />
                 </div>
             </div>
@@ -135,7 +135,7 @@ const CalculationSection = () => {
       <div className="bg-white rounded-xl shadow-sm border p-4 md:p-6">
         <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2 flex items-center gap-3">
             <div className="p-2 bg-purple-50 rounded-lg"><TrendingUp className="w-5 h-5 text-purple-600"/></div>
-            Marża i Wycena
+            Narzut i Wycena
         </h3>
         
         <div className='p-4 bg-purple-50/50 rounded-xl mb-6 mt-4 border border-purple-100'>
@@ -144,7 +144,7 @@ const CalculationSection = () => {
                 <span className='text-gray-600'>Podstawa do naliczeń:</span>
                 <span className='font-bold text-gray-800'>{formatPrice(totals.subtotal)}</span>
             </div>
-            <RangeInput label={`Marża (${settings.margin}%)`} value={settings.margin} onChange={e => handleSettingChange('margin', parseInt(e.target.value))} max={100} amount={formatPrice(totals.marginAmount)} />
+            <RangeInput label={`Narzut(${settings.margin}%)`} value={settings.margin} onChange={e => handleSettingChange('margin', parseInt(e.target.value))} max={100} amount={formatPrice(totals.marginAmount)} />
           </fieldset>
         </div>
         

@@ -39,7 +39,6 @@ const MaterialsManager = () => {
         ...item, 
         originalIndex: realIndex, 
         isNew: false,
-        // Konwertujemy cenę na string, żeby edycja była łatwiejsza
         cena: item.cena !== undefined ? item.cena.toString().replace('.', ',') : '' 
     });
   };
@@ -50,16 +49,12 @@ const MaterialsManager = () => {
     setIsSaving(true);
 
     try {
-        // 1. Bezpieczna kopia listy
         const currentList = Array.from(materials[activeCategory] || []);
-
-        // 2. Naprawa Ceny (Polska waluta: zamiana przecinka na kropkę)
         let priceString = editingItem.cena.toString().replace(',', '.');
         let finalPrice = parseFloat(priceString);
 
         if (isNaN(finalPrice)) finalPrice = 0;
 
-        // 3. Obiekt do zapisu
         const itemToSave = {
             nazwa: editingItem.nazwa.trim(),
             opis: editingItem.opis ? editingItem.opis.trim() : '',
@@ -77,9 +72,7 @@ const MaterialsManager = () => {
             }
         }
 
-        // 4. Zapis do Firebase (teraz zadziała poprawnie z nowym Contextem)
         await updateMaterials(activeCategory, currentList);
-        
         setEditingItem(null);
     } catch (error) {
         console.error("Błąd zapisu:", error);
@@ -102,7 +95,6 @@ const MaterialsManager = () => {
     }
   };
 
-  // Filtrowanie z zachowaniem oryginalnych indeksów
   const filteredItems = (materials[activeCategory] || [])
     .map((item, index) => ({ ...item, originalIndex: index }))
     .filter(item => {
@@ -122,136 +114,155 @@ const MaterialsManager = () => {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-[calc(100vh-120px)]">
+    <div className="bg-white rounded-xl md:rounded-2xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-[calc(100vh-80px)] md:h-[calc(100vh-120px)]">
         {/* HEADER */}
-        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+        <div className="p-4 md:p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
             <div>
-                <h2 className="text-lg font-bold text-gray-900">Baza Materiałów</h2>
-                <p className="text-sm text-gray-500">Zarządzaj cenami i asortymentem</p>
+                <h2 className="text-base md:text-lg font-bold text-gray-900">Baza Materiałów</h2>
+                <p className="text-xs md:text-sm text-gray-500 hidden md:block">Zarządzaj cenami i asortymentem</p>
             </div>
-            <button onClick={handleAddItem} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm font-medium">
+            <button onClick={handleAddItem} className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm font-medium text-sm">
                 <Plus size={18} />
-                <span>Dodaj pozycję</span>
+                <span>Dodaj <span className="hidden md:inline">pozycję</span></span>
             </button>
         </div>
 
-        {/* CONTENT */}
-        <div className="flex flex-1 overflow-hidden">
-            {/* SIDEBAR */}
-            <div className="w-64 bg-gray-50 border-r border-gray-200 overflow-y-auto p-4 flex flex-col gap-1">
-                {Object.keys(CATEGORY_NAMES).map((catKey) => (
-                    <button
-                        key={catKey}
-                        onClick={() => { setActiveCategory(catKey); setSearchTerm(''); }}
-                        className={`w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 
-                            ${activeCategory === catKey 
-                                ? 'bg-white text-blue-700 shadow-sm ring-1 ring-gray-200' 
-                                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                            }`}
-                    >
-                        {CATEGORY_NAMES[catKey]}
-                        <span className="float-right text-xs bg-gray-100 px-2 py-0.5 rounded-full text-gray-400 mt-0.5">
-                            {materials[catKey]?.length || 0}
-                        </span>
-                    </button>
-                ))}
+        {/* CONTENT CONTAINER */}
+        <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+            
+            {/* SIDEBAR (Mobile: Horizontal Scroll, Desktop: Vertical List) */}
+            <div className="w-full md:w-64 bg-white md:bg-gray-50 border-b md:border-b-0 md:border-r border-gray-200 overflow-x-auto md:overflow-y-auto flex flex-row md:flex-col shrink-0 no-scrollbar">
+                <div className="flex flex-row md:flex-col p-2 md:p-4 gap-2 min-w-max md:min-w-0">
+                    {Object.keys(CATEGORY_NAMES).map((catKey) => (
+                        <button
+                            key={catKey}
+                            onClick={() => { setActiveCategory(catKey); setSearchTerm(''); }}
+                            className={`px-3 py-2 md:px-4 md:py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-left flex items-center justify-between whitespace-nowrap
+                                ${activeCategory === catKey 
+                                    ? 'bg-blue-600 text-white md:bg-white md:text-blue-700 md:shadow-sm md:ring-1 md:ring-gray-200' 
+                                    : 'text-gray-600 bg-gray-50 md:bg-transparent hover:bg-gray-100 hover:text-gray-900'
+                                }`}
+                        >
+                            <span>{CATEGORY_NAMES[catKey]}</span>
+                            <span className={`ml-2 text-xs px-2 py-0.5 rounded-full hidden md:inline-block
+                                ${activeCategory === catKey ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'}`}>
+                                {materials[catKey]?.length || 0}
+                            </span>
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            {/* TABELA */}
-            <div className="flex-1 overflow-y-auto p-6 bg-white relative">
-                <div className="mb-4 relative max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                    <input 
-                        type="text" 
-                        placeholder="Szukaj po nazwie lub kodzie..." 
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm transition-all"
-                    />
+            {/* TABELA (Mobile: Responsive) */}
+            <div className="flex-1 overflow-hidden flex flex-col bg-white relative">
+                
+                {/* Search Bar */}
+                <div className="p-4 border-b border-gray-100 shrink-0">
+                    <div className="relative max-w-md w-full">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <input 
+                            type="text" 
+                            placeholder="Szukaj po nazwie..." 
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm"
+                        />
+                    </div>
                 </div>
 
-                {filteredItems.length > 0 ? (
-                    <div className="border border-gray-200 rounded-lg overflow-hidden">
-                        <table className="w-full text-sm text-left">
-                            <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-200">
-                                <tr>
-                                    <th className="px-4 py-3 w-12 text-center">#</th>
-                                    <th className="px-4 py-3">Nazwa materiału</th>
-                                    <th className="px-4 py-3">Opis / Kod</th>
-                                    <th className="px-4 py-3 text-right">Cena (netto)</th>
-                                    <th className="px-4 py-3 w-24 text-center">Akcje</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {filteredItems.map((item) => (
-                                    <tr key={`${item.nazwa}-${item.originalIndex}`} className="hover:bg-blue-50/50 transition-colors group">
-                                        <td className="px-4 py-3 text-center text-gray-400 font-mono text-xs">
-                                            {item.originalIndex + 1}
-                                        </td>
-                                        <td className="px-4 py-3 font-medium text-gray-900">{item.nazwa}</td>
-                                        <td className="px-4 py-3 text-gray-500">{item.opis || '-'}</td>
-                                        <td className="px-4 py-3 text-right font-mono font-medium text-blue-600">
-                                            {typeof item.cena === 'number' ? item.cena.toFixed(2) : parseFloat(item.cena || 0).toFixed(2)} zł
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button 
-                                                    onClick={() => handleEditItem(item, item.originalIndex)}
-                                                    className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-100 rounded-md transition-colors"
-                                                    title="Edytuj"
-                                                >
-                                                    <Edit size={16} />
-                                                </button>
-                                                <button 
-                                                    onClick={() => handleDeleteItem(item.originalIndex)}
-                                                    className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-100 rounded-md transition-colors"
-                                                    title="Usuń"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        </td>
+                {/* Table Content */}
+                <div className="flex-1 overflow-y-auto p-0 md:p-6">
+                    {filteredItems.length > 0 ? (
+                        <div className="md:border md:border-gray-200 md:rounded-lg overflow-x-auto">
+                            <table className="w-full text-sm text-left min-w-[350px] md:min-w-full">
+                                <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-200 sticky top-0 z-10">
+                                    <tr>
+                                        <th className="px-3 py-3 md:px-4 w-10 text-center text-xs">#</th>
+                                        <th className="px-3 py-3 md:px-4">Nazwa</th>
+                                        <th className="px-3 py-3 md:px-4 hidden sm:table-cell">Kod/Opis</th>
+                                        <th className="px-3 py-3 md:px-4 text-right">Cena</th>
+                                        <th className="px-2 py-3 md:px-4 w-20 text-center"></th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                ) : (
-                    <div className="flex flex-col items-center justify-center h-64 text-gray-400 border-2 border-dashed border-gray-100 rounded-xl bg-gray-50/30">
-                        <Search size={48} className="mb-4 opacity-20" />
-                        <p className="text-lg font-medium text-gray-500">Brak wyników</p>
-                    </div>
-                )}
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {filteredItems.map((item) => (
+                                        <tr key={`${item.nazwa}-${item.originalIndex}`} className="active:bg-gray-50 hover:bg-blue-50/50 transition-colors">
+                                            <td className="px-3 py-3 md:px-4 text-center text-gray-400 font-mono text-xs">
+                                                {item.originalIndex + 1}
+                                            </td>
+                                            <td className="px-3 py-3 md:px-4 font-medium text-gray-900">
+                                                <div className="line-clamp-2">{item.nazwa}</div>
+                                                <div className="text-xs text-gray-400 sm:hidden mt-0.5">{item.opis}</div>
+                                            </td>
+                                            <td className="px-3 py-3 md:px-4 text-gray-500 hidden sm:table-cell">{item.opis || '-'}</td>
+                                            <td className="px-3 py-3 md:px-4 text-right font-mono font-medium text-blue-600 whitespace-nowrap">
+                                                {typeof item.cena === 'number' ? item.cena.toFixed(2) : parseFloat(item.cena || 0).toFixed(2)} zł
+                                            </td>
+                                            <td className="px-2 py-3 md:px-4 text-right">
+                                                <div className="flex items-center justify-end gap-1">
+                                                    <button 
+                                                        onClick={() => handleEditItem(item, item.originalIndex)}
+                                                        className="p-2 text-gray-500 hover:text-blue-600 bg-gray-50 hover:bg-blue-100 rounded-lg transition-colors"
+                                                    >
+                                                        <Edit size={16} />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleDeleteItem(item.originalIndex)}
+                                                        className="p-2 text-gray-500 hover:text-red-600 bg-gray-50 hover:bg-red-100 rounded-lg transition-colors"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center h-48 text-gray-400">
+                            <Search size={32} className="mb-2 opacity-20" />
+                            <p className="text-sm font-medium text-gray-500">Brak wyników</p>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
 
-        {/* MODAL */}
+        {/* MODAL (Responsive Full Screen on Mobile) */}
         {editingItem && (
-            <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
-                    <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
-                        <h3 className="font-bold text-gray-900">
-                            {editingItem.isNew ? 'Dodaj nowy materiał' : 'Edytuj materiał'}
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4">
+                {/* Backdrop */}
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !isSaving && setEditingItem(null)} />
+                
+                {/* Modal Window */}
+                <div className="bg-white w-full h-full md:h-auto md:max-w-lg md:rounded-2xl shadow-2xl overflow-hidden flex flex-col relative animate-in slide-in-from-bottom-5 md:zoom-in-95 duration-200">
+                    
+                    {/* Modal Header */}
+                    <div className="px-4 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center shrink-0 safe-area-top">
+                        <h3 className="font-bold text-gray-900 text-lg">
+                            {editingItem.isNew ? 'Dodaj nową pozycję' : 'Edycja pozycji'}
                         </h3>
                         <button 
                             onClick={() => !isSaving && setEditingItem(null)} 
-                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                            className="p-2 -mr-2 text-gray-500 hover:text-gray-800 transition-colors bg-white rounded-full shadow-sm border border-gray-200"
                             disabled={isSaving}
                         >
                             <X size={20} />
                         </button>
                     </div>
                     
-                    <form onSubmit={handleSaveItem} className="p-6 space-y-4">
+                    {/* Modal Form (Scrollable) */}
+                    <form onSubmit={handleSaveItem} className="p-4 md:p-6 space-y-5 overflow-y-auto flex-1">
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Nazwa</label>
-                            <input 
-                                type="text" 
+                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Nazwa materiału</label>
+                            <textarea 
                                 required
+                                rows={2}
                                 value={editingItem.nazwa}
                                 onChange={(e) => setEditingItem({...editingItem, nazwa: e.target.value})}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                                placeholder="Np. Płyta Dąb Sonoma"
+                                className="w-full px-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-base"
+                                placeholder="Wpisz nazwę..."
                                 disabled={isSaving}
                             />
                         </div>
@@ -271,19 +282,18 @@ const MaterialsManager = () => {
                                             setEditingItem({...editingItem, cena: val});
                                         }
                                     }}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono"
+                                    className="w-full px-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-mono text-lg font-medium"
                                     disabled={isSaving}
                                 />
-                                <p className="text-[10px] text-gray-400 mt-1">Możesz używać kropki lub przecinka</p>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Opis / Kod</label>
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Kod / Opis</label>
                                 <input 
                                     type="text" 
                                     value={editingItem.opis || ''}
                                     onChange={(e) => setEditingItem({...editingItem, opis: e.target.value})}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                                    placeholder="Np. K001"
+                                    className="w-full px-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-base"
+                                    placeholder="Opcjonalne"
                                     disabled={isSaving}
                                 />
                             </div>
@@ -291,43 +301,61 @@ const MaterialsManager = () => {
 
                         {/* Opcje specjalne dla Okleiny */}
                         {activeCategory === 'okleina' && (
-                            <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
-                                <label className="block text-xs font-bold text-blue-700 uppercase tracking-wide mb-2">Typ pozycji</label>
-                                <div className="flex gap-4 text-sm">
-                                    <label className="flex items-center gap-2 cursor-pointer">
+                            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                                <label className="block text-xs font-bold text-blue-700 uppercase tracking-wide mb-3">Typ pozycji</label>
+                                <div className="space-y-3">
+                                    <label className="flex items-center gap-3 p-2 bg-white rounded-lg border border-blue-100 shadow-sm cursor-pointer">
                                         <input 
                                             type="radio" 
                                             name="kategoria"
                                             checked={editingItem.kategoria !== 'usluga'}
                                             onChange={() => setEditingItem({...editingItem, kategoria: 'material'})}
-                                            className="text-blue-600 focus:ring-blue-500"
+                                            className="w-5 h-5 text-blue-600 focus:ring-blue-500"
                                             disabled={isSaving}
                                         />
-                                        <span>Materiał</span>
+                                        <div>
+                                            <span className="block font-medium text-gray-900 text-sm">Materiał (Okleina)</span>
+                                            <span className="block text-xs text-gray-500">System doliczy koszty usług.</span>
+                                        </div>
                                     </label>
-                                    <label className="flex items-center gap-2 cursor-pointer">
+                                    <label className="flex items-center gap-3 p-2 bg-white rounded-lg border border-blue-100 shadow-sm cursor-pointer">
                                         <input 
                                             type="radio" 
                                             name="kategoria"
                                             checked={editingItem.kategoria === 'usluga'}
                                             onChange={() => setEditingItem({...editingItem, kategoria: 'usluga'})}
-                                            className="text-blue-600 focus:ring-blue-500"
+                                            className="w-5 h-5 text-blue-600 focus:ring-blue-500"
                                             disabled={isSaving}
                                         />
-                                        <span>Usługa (np. Cięcie)</span>
+                                        <div>
+                                            <span className="block font-medium text-gray-900 text-sm">Usługa techniczna</span>
+                                            <span className="block text-xs text-gray-500">Np. "KOSZT CIĘCIA" - stała cena.</span>
+                                        </div>
                                     </label>
                                 </div>
                             </div>
                         )}
-
-                        <div className="flex justify-end gap-3 pt-6 border-t border-gray-100 mt-6">
-                            <button type="button" onClick={() => setEditingItem(null)} className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors" disabled={isSaving}>Anuluj</button>
-                            <button type="submit" disabled={isSaving} className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2">
-                                {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-                                {isSaving ? 'Zapisywanie...' : 'Zapisz zmiany'}
-                            </button>
-                        </div>
                     </form>
+
+                    {/* Modal Footer (Sticky Bottom on Mobile) */}
+                    <div className="p-4 border-t border-gray-100 bg-gray-50 flex gap-3 shrink-0 safe-area-bottom">
+                        <button 
+                            type="button" 
+                            onClick={() => setEditingItem(null)} 
+                            className="flex-1 px-4 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-medium transition-colors hover:bg-gray-50" 
+                            disabled={isSaving}
+                        >
+                            Anuluj
+                        </button>
+                        <button 
+                            onClick={handleSaveItem}
+                            disabled={isSaving} 
+                            className="flex-[2] px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow-md transition-colors flex items-center justify-center gap-2"
+                        >
+                            {isSaving && <Loader2 className="w-5 h-5 animate-spin" />}
+                            {isSaving ? 'Zapisywanie...' : 'Zapisz'}
+                        </button>
+                    </div>
                 </div>
             </div>
         )}
