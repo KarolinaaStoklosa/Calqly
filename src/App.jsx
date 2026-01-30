@@ -47,7 +47,8 @@ const WelcomeScreen = ({ setActiveTab }) => {
       </div>
       <h1 className="text-4xl font-bold text-gray-900">Witaj w Aplikacji!</h1>
       <p className="text-gray-600 mt-4 max-w-xl mx-auto">
-        Wygląda na to, że nie masz jeszcze aktywnego projektu. Możesz teraz skonfigurować ustawienia, zarządzać materiałami lub od razu stworzyć nowy projekt, aby rozpocząć kalkulację.
+        Skonfiguruj dane Firmy, zarządzaj materiałam i stwórz nowy projekt lub otwórz istniejący z archiwum.
+        
       </p>
       <button 
         onClick={handleCreateFirstProject}
@@ -55,6 +56,13 @@ const WelcomeScreen = ({ setActiveTab }) => {
       >
         <FilePlus className="w-5 h-5 mr-2" />
         Utwórz Projekt
+      </button>
+      <button 
+        onClick={() => setActiveTab('archive')}
+        className="mt-8 flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
+      >
+        <FilePlus className="w-5 h-5 mr-2" />
+        Otwórz istniejący projekt
       </button>
     </div>
   );

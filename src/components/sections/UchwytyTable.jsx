@@ -4,8 +4,9 @@ import { useProjectSection, useProject } from '../../context/ProjectContext';
 import { useCalculator } from '../../hooks/useCalculator';
 import { useMaterials } from '../../context/MaterialContext';
 import MaterialSelector from '../ui/MaterialSelector';
+import CategoryPriceAlert from '../ui/CategoryPriceAlert';
 
-const UchwytyTable = () => {
+const UchwytyTable = ({ setActiveTab }) => {
   const { isEditMode } = useProject();
   const { items: uchwyty, addItem, updateItem, removeItem, total } = useProjectSection('uchwyty');
   const { calculateUchwyt, formatPrice } = useCalculator();
@@ -36,6 +37,7 @@ const UchwytyTable = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-violet-50 to-indigo-50 p-4 md:p-6 pb-24">
+            <CategoryPriceAlert category="uchwyty" setActiveTab={setActiveTab} />
       {/* Header */}
       <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-violet-600 to-indigo-600 rounded-2xl p-4 mb-4 shadow-lg">
         <div className="relative z-10 flex items-center justify-between">

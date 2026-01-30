@@ -4,8 +4,9 @@ import { useProjectSection, useProject } from '../../context/ProjectContext';
 import { useCalculator } from '../../hooks/useCalculator';
 import { useMaterials } from '../../context/MaterialContext';
 import MaterialSelector from '../ui/MaterialSelector';
+import CategoryPriceAlert from '../ui/CategoryPriceAlert';
 
-const DrzwiPrzesuwneTable = () => {
+const DrzwiPrzesuwneTable = ({ setActiveTab }) => {
   const { isEditMode } = useProject();
   const { items: drzwiPrzesuwne, addItem, updateItem, removeItem, total } = useProjectSection('drzwiPrzesuwne');
   const { calculateDrzwiPrzesuwne, formatPrice } = useCalculator();
@@ -36,6 +37,7 @@ const DrzwiPrzesuwneTable = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 p-4 md:p-6 pb-24">
+      <CategoryPriceAlert category="drzwiPrzesuwne" setActiveTab={setActiveTab} />
       {/* Header */}
       <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 rounded-2xl p-4 mb-4 shadow-lg">
         <div className="relative z-10 flex items-center justify-between">

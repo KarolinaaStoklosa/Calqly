@@ -4,8 +4,9 @@ import { useProjectSection, useProject } from '../../context/ProjectContext';
 import { useCalculator } from '../../hooks/useCalculator';
 import { useMaterials } from '../../context/MaterialContext';
 import MaterialSelector from '../ui/MaterialSelector';
+import CategoryPriceAlert from '../ui/CategoryPriceAlert';
 
-const AkcesoriaTable = () => {
+const AkcesoriaTable = ({ setActiveTab }) => {
   const { isEditMode } = useProject();
   const { items: akcesoria, addItem, updateItem, removeItem, total } = useProjectSection('akcesoria');
   const { calculateAkcesorium, formatPrice } = useCalculator();
@@ -36,6 +37,7 @@ const AkcesoriaTable = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 p-4 md:p-6 pb-24">
+      <CategoryPriceAlert category="akcesoria" setActiveTab={setActiveTab} />
       {/* Header */}
       <div className="relative overflow-hidden bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 rounded-2xl p-4 mb-4 shadow-lg">
         <div className="relative z-10 flex items-center justify-between">

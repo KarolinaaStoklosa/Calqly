@@ -4,8 +4,9 @@ import { useProjectSection, useProject } from '../../context/ProjectContext';
 import { useCalculator } from '../../hooks/useCalculator';
 import { useMaterials } from '../../context/MaterialContext';
 import MaterialSelector from '../ui/MaterialSelector';
+import CategoryPriceAlert from '../ui/CategoryPriceAlert';
 
-const PodnosnikiTable = () => {
+const PodnosnikiTable = ({ setActiveTab }) => {
   const { isEditMode } = useProject();
   const { items: podnosniki, addItem, updateItem, removeItem, total } = useProjectSection('podnosniki');
   const { calculatePodnosnik, formatPrice } = useCalculator();
@@ -36,6 +37,7 @@ const PodnosnikiTable = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-red-50 p-4 md:p-6 pb-24">
+      <CategoryPriceAlert category="podnosniki" setActiveTab={setActiveTab} />
       {/* Header */}
       <div className="relative overflow-hidden bg-gradient-to-r from-rose-600 via-pink-600 to-red-600 rounded-2xl p-4 mb-4 shadow-lg">
         <div className="relative z-10 flex items-center justify-between">
