@@ -8,10 +8,10 @@ const CategoryPriceAlert = ({ category, extraCategories = [], setActiveTab }) =>
   const [isFixing, setIsFixing] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
-  // Łączymy główną kategorię z dodatkowymi (np. dla korpusów: płyty + fronty)
+  // Łączymy główną kategorię z dodatkowymi
   const allTargetCategories = [category, ...extraCategories];
 
-  // Sprawdzamy, czy w którejkolwiek z tych kategorii są ceny 0zł
+  // Sprawdzamy, czy w którejkolwiek kategorii są ceny 0zł
   const hasZeroPrices = allTargetCategories.some(cat => {
     const items = materials[cat] || [];
     return items.some(item => {
@@ -22,24 +22,23 @@ const CategoryPriceAlert = ({ category, extraCategories = [], setActiveTab }) =>
   });
 
   const handleAutoFix = async () => {
-    const confirmMsg = `Czy chcesz zsynchronizować ceny dla kategorii: ${allTargetCategories.join(', ')}?\n\n` +
-                       `1. Brakujące ceny zostaną pobrane z bazy.\n` +
-                       `2. Twoje własne wycenione produkty zostaną zachowane.\n` +
-                       `3. Nieaktualne pozycje (cena 0zł i brak w bazie) zostaną usunięte.`;
+    const confirmMsg = `Czy chcesz zsynchronizować ceny dla: ${allTargetCategories.join(', ')}?\n\n` +
+                       `• Brakujące ceny zostaną uzupełnione z bazy.\n` +
+                       `• Nowe produkty zostaną dopisane.\n` +
+                       `• Twoje własne wycenione produkty zostaną zachowane.\n` +
+                       `• Nieaktualne pozycje z ceną 0zł zostaną usunięte.`;
 
     if (!window.confirm(confirmMsg)) return;
 
     setIsFixing(true);
     try {
-      // Iterujemy po wszystkich powiązanych kategoriach
       for (const cat of allTargetCategories) {
         const freshDataFromDB = DROPDOWN_DATA[cat] || [];
         const userItems = materials[cat] || [];
         
-        // Mapa nowej bazy dla szybkiego wyszukiwania
         const dbMap = new Map(freshDataFromDB.map(item => [item.nazwa.toLowerCase().trim(), item]));
 
-        // A. Aktualizacja: Jeśli jest w bazie i user ma 0zł -> wstawiamy cenę z bazy
+        // A. Aktualizacja istniejących (jeśli user ma 0zł)
         let updatedList = userItems.map(userItem => {
           const cleanName = userItem.nazwa.toLowerCase().trim();
           const dbMatch = dbMap.get(cleanName);
@@ -54,13 +53,13 @@ const CategoryPriceAlert = ({ category, extraCategories = [], setActiveTab }) =>
           return userItem;
         });
 
-        // B. Nowości: Szukamy rzeczy w bazie, których użytkownik w ogóle nie ma
+        // B. Dodawanie nowości z bazy
         const userNames = new Set(updatedList.map(i => i.nazwa.toLowerCase().trim()));
         const newItems = freshDataFromDB.filter(dbItem => 
           !userNames.has(dbItem.nazwa.toLowerCase().trim())
         );
 
-        // C. Łączenie i czyszczenie: usuwamy wszystko co ma cenę 0 (i nie jest placeholderem "BRAK")
+        // C. Łączenie i czyszczenie końcowe (usuwamy wszystko co zostało z ceną 0)
         const combinedList = [...updatedList, ...newItems];
         const finalList = combinedList.filter(item => {
           const price = parseFloat(item.cena);
@@ -68,11 +67,10 @@ const CategoryPriceAlert = ({ category, extraCategories = [], setActiveTab }) =>
           return price > 0 || !isNotPlaceholder;
         });
 
-        // D. Zapis do bazy dla danej kategorii
         await updateMaterials(cat, finalList);
       }
 
-      setSuccessMsg(`Zaktualizowano pomyślnie!`);
+      setSuccessMsg(`Baza została pomyślnie zaktualizowana!`);
       setTimeout(() => setSuccessMsg(''), 3000);
     } catch (error) {
       console.error("Błąd synchronizacji:", error);
@@ -85,47 +83,79 @@ const CategoryPriceAlert = ({ category, extraCategories = [], setActiveTab }) =>
   if (!hasZeroPrices && !successMsg) return null;
 
   return (
-    <div className={`mb-6 rounded-xl border transition-all duration-300 ${
+    <div className={`mb-6 rounded-xl border transition-all duration-300 shadow-sm overflow-hidden ${
       successMsg ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'
     }`}>
-      <div className="p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex items-start gap-4">
-          <div className={`p-2 rounded-lg ${
+      <div className="p-4 md:p-5 flex flex-col md:flex-row items-center justify-between gap-5">
+        
+        {/* LEWA STRONA: INFO */}
+        <div className="flex items-start gap-4 w-full">
+          <div className={`p-2.5 rounded-lg shrink-0 ${
             successMsg ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'
           }`}>
-            {successMsg ? <CheckCircle2 size={20} /> : <AlertTriangle size={20} />}
+            {successMsg ? <CheckCircle2 size={22} /> : <AlertTriangle size={22} />}
           </div>
-          <div>
+          <div className="min-w-0">
             <h4 className={`text-sm font-bold ${successMsg ? 'text-green-800' : 'text-amber-800'}`}>
-              {successMsg || "Wymagana aktualizacja cen"}
+              {successMsg || "Wymagana aktualizacja bazy"}
             </h4>
-            <p className="text-xs text-gray-600 mt-0.5">
-              {successMsg || "Niektóre materiały (płyty/fronty) nie mają cen. Wczytaj dane rynkowe, aby kalkulacja była poprawna."}
+            <p className={`text-xs mt-1 leading-relaxed ${successMsg ? 'text-green-600' : 'text-amber-700/80'}`}>
+              {successMsg || "Niektóre produkty nie mają cen lub ich nazwy są nieaktualne. Zsynchronizuj listę z bazą systemową."}
             </p>
           </div>
         </div>
 
-        <div className="flex gap-2 w-full md:w-auto">
-          {!successMsg && (
-            <>
-              <button
-                onClick={handleAutoFix}
-                disabled={isFixing}
-                className="flex-1 md:flex-none whitespace-nowrap px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {isFixing ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
-                Wczytaj ceny i wyczyść
-              </button>
-              <button
-                onClick={() => setActiveTab('materials')}
-                className="flex-1 md:flex-none whitespace-nowrap px-4 py-2 bg-white border border-amber-200 text-amber-700 text-xs font-bold rounded-lg hover:bg-amber-50 transition-all"
-              >
-                Ustaw ręcznie
-              </button>
-            </>
-          )}
-        </div>
+        {/* PRAWA STRONA: PRZYCISKI (Zoptymalizowane pod Mobile) */}
+        {!successMsg && (
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0">
+            <button
+              onClick={handleAutoFix}
+              disabled={isFixing}
+              className="
+                inline-flex items-center justify-center gap-2
+                w-full md:w-auto 
+                px-6 py-3 md:py-2
+                bg-gradient-to-r from-amber-600 to-orange-600 
+                hover:from-amber-700 hover:to-orange-700 
+                text-white text-sm md:text-xs font-bold 
+                rounded-xl md:rounded-lg 
+                transition-all shadow-md active:scale-95 
+                disabled:opacity-50
+              "
+            >
+              {isFixing ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Wand2 size={16} />
+              )}
+              <span>Wczytaj i wyczyść listę</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('materials')}
+              className="
+                inline-flex items-center justify-center
+                w-full md:w-auto 
+                px-6 py-3 md:py-2
+                bg-white border-2 border-amber-200 
+                hover:bg-amber-50 
+                text-amber-700 text-sm md:text-xs font-bold 
+                rounded-xl md:rounded-lg 
+                transition-all
+              "
+            >
+              Ustaw ręcznie
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Pasek postępu na samym dole */}
+      {isFixing && (
+        <div className="h-1 bg-amber-200 overflow-hidden">
+          <div className="h-full bg-amber-600 animate-[progress_1.5s_infinite_linear] w-1/3 shadow-[0_0_10px_rgba(217,119,6,0.5)]" />
+        </div>
+      )}
     </div>
   );
 };
