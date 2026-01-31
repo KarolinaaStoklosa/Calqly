@@ -5,7 +5,21 @@ import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { DROPDOWN_DATA } from '../data/dropdowns';
 
 const MaterialsContext = createContext();
-
+const prepareZeroPrices = (data) => {
+  const zeroedData = {};
+  Object.keys(data).forEach(category => {
+    // Sprawdzamy czy to tablica (nasze listy materiałów)
+    if (Array.isArray(data[category])) {
+      zeroedData[category] = data[category].map(item => ({
+        ...item,
+        cena: 0 // <--- Każdy materiał dostaje cenę 0 na start
+      }));
+    } else {
+      zeroedData[category] = data[category];
+    }
+  });
+  return zeroedData;
+};
 export const useMaterials = () => useContext(MaterialsContext);
 
 export const MaterialsProvider = ({ children }) => {
@@ -32,8 +46,10 @@ export const MaterialsProvider = ({ children }) => {
         }));
       } else {
         // Tworzenie biblioteki dla nowego usera
-        setDoc(docRef, DROPDOWN_DATA).catch(console.error);
-        setMaterials(DROPDOWN_DATA);
+        const initialDataWithZeros = prepareZeroPrices(DROPDOWN_DATA);
+        
+        setDoc(docRef, initialDataWithZeros).catch(console.error);
+        setMaterials(initialDataWithZeros);
       }
       setLoading(false);
     }, (error) => {
