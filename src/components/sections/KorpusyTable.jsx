@@ -60,8 +60,11 @@ const KorpusyTable = ({ setActiveTab }) => {
 
    return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4 md:p-6 pb-24">
-      <CategoryPriceAlert category="plytyMeblowe" setActiveTab={setActiveTab} />
-      <CategoryPriceAlert category="okleina" setActiveTab={setActiveTab} />
+      <CategoryPriceAlert 
+  category="plytyMeblowe" 
+  extraCategories={['fronty','okleina']} // Dodaj tutaj kategorie, które mają się "naprawić" razem
+  setActiveTab={setActiveTab} 
+/>
       {/* HEADER */}
       <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-2xl p-4 mb-4 shadow-lg">
         <div className="relative z-10 flex items-center justify-between">
