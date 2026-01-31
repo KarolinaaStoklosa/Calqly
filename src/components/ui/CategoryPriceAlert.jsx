@@ -148,4 +148,5 @@ const CategoryPriceAlert = ({ category, setActiveTab }) => {
   );
 };
 
+
 export default CategoryPriceAlert;
