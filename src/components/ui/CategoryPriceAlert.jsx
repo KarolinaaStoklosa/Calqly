@@ -21,10 +21,11 @@ const CategoryPriceAlert = ({ category, extraCategories = [], setActiveTab }) =>
   });
 
   const handleAutoFix = async () => {
-    const confirmMsg = `Czy chcesz zsynchronizować ceny i usługi dla: ${allTargetCategories.join(', ')}?\n\n` +
-                       `• Brakujące ceny (w tym usługi) zostaną pobrane z bazy.\n` +
-                       `• Twoje własne wyceny zostaną zachowane.\n` +
-                       `• Nieaktualne pozycje z ceną 0zł zostaną usunięte.`;
+    const confirmMsg = `Produkcyjna synchronizacja danych dla: ${allTargetCategories.join(', ')}.\n\n` +
+                       `• Uzgodnienie cen i kategorii usług.\n` +
+                       `• Usunięcie błędnych wpisów 0zł.\n` +
+                       `• Zachowanie Twoich unikalnych pozycji.\n\n` +
+                       `Czy kontynuować?`;
 
     if (!window.confirm(confirmMsg)) return;
 
@@ -34,52 +35,69 @@ const CategoryPriceAlert = ({ category, extraCategories = [], setActiveTab }) =>
         const freshDataFromDB = DROPDOWN_DATA[cat] || [];
         const userItems = materials[cat] || [];
         
-        // Mapa bazy systemowej dla szybkiego dopasowania
+        // Mapa dla szybkiego dostępu (klucze w małych literach dla bezpieczeństwa)
         const dbMap = new Map(freshDataFromDB.map(item => [item.nazwa.toLowerCase().trim(), item]));
 
-        // 1. AKTUALIZACJA ISTNIEJĄCYCH
+        // 1. Przetworzenie istniejących elementów użytkownika
         let updatedList = userItems.map(userItem => {
-          const cleanName = userItem.nazwa.toLowerCase().trim();
+          const cleanName = userItem.nazwa?.toLowerCase().trim();
           const dbMatch = dbMap.get(cleanName);
 
-          // Aktualizujemy jeśli: jest w bazie ORAZ (user ma cenę 0 LUB brak ceny)
+          // Jeśli element jest w bazie i ma cenę 0 lub brak ceny -> aktualizujemy
           if (dbMatch && (!userItem.cena || parseFloat(userItem.cena) === 0)) {
-            return { 
-              ...userItem, 
-              cena: dbMatch.cena, 
-              kategoria: dbMatch.kategoria || userItem.kategoria,
-              opis: dbMatch.opis || userItem.opis 
+            return {
+              ...userItem,
+              cena: Number(dbMatch.cena) || 0,
+              // Gwarancja braku undefined dla Firebase:
+              opis: dbMatch.opis || userItem.opis || "",
+              kategoria: dbMatch.kategoria || userItem.kategoria || "material"
             };
           }
-          return userItem;
-        });
-
-        // 2. DODAWANIE BRAKUJĄCYCH Z BAZY (np. nowych usług lub obrzeży)
-        const userNames = new Set(updatedList.map(i => i.nazwa.toLowerCase().trim()));
-        const newItems = freshDataFromDB.filter(dbItem => 
-          !userNames.has(dbItem.nazwa.toLowerCase().trim())
-        );
-
-        // 3. CZYSZCZENIE KOŃCOWE
-        const combinedList = [...updatedList, ...newItems];
-        const finalList = combinedList.filter(item => {
-          const price = parseFloat(item.cena);
-          const nameUpper = item.nazwa?.toUpperCase() || "";
-          const isPlaceholder = nameUpper.includes('BRAK');
           
-          // Zostawiamy jeśli: ma cenę > 0 LUB jest placeholderem "BRAK"
-          // Usługi z ceną 0 zostaną usunięte, chyba że baza dropdowns poda im cenę > 0
-          return price > 0 || isPlaceholder;
+          // Jeśli nie ma go w bazie, upewniamy się tylko, że nie ma undefined
+          return {
+            ...userItem,
+            cena: Number(userItem.cena) || 0,
+            opis: userItem.opis || "",
+            kategoria: userItem.kategoria || "material"
+          };
         });
 
+        // 2. Dodanie brakujących elementów z bazy (których użytkownik w ogóle nie ma)
+        const userNames = new Set(updatedList.map(i => i.nazwa?.toLowerCase().trim()));
+        const newItems = freshDataFromDB
+          .filter(dbItem => !userNames.has(dbItem.nazwa.toLowerCase().trim()))
+          .map(newItem => ({
+            nazwa: newItem.nazwa,
+            cena: Number(newItem.cena) || 0,
+            opis: newItem.opis || "",
+            kategoria: newItem.kategoria || "material"
+          }));
+
+        // 3. Finalne łączenie, filtrowanie i sanityzacja danych
+        const finalList = [...updatedList, ...newItems]
+          .filter(item => {
+            const price = parseFloat(item.cena);
+            const nameUpper = item.nazwa?.toUpperCase() || "";
+            // Zostawiamy tylko to co ma cenę > 0 LUB jest placeholderem "BRAK"
+            return price > 0 || nameUpper.includes('BRAK');
+          })
+          .map(item => {
+            // DEEP CLEAN: Usuwa absolutnie każde pole undefined przed zapisem do Firebase
+            return Object.fromEntries(
+              Object.entries(item).filter(([_, v]) => v !== undefined)
+            );
+          });
+
+        // Wywołanie zapisu do Firebase przez Context
         await updateMaterials(cat, finalList);
       }
 
-      setSuccessMsg(`Baza została pomyślnie zaktualizowana!`);
+      setSuccessMsg(`Dane zaktualizowane pomyślnie!`);
       setTimeout(() => setSuccessMsg(''), 3000);
     } catch (error) {
-      console.error("Błąd synchronizacji:", error);
-      alert("Wystąpił błąd podczas aktualizacji danych.");
+      console.error("Błąd produkcyjny synchronizacji:", error);
+      alert("Błąd krytyczny: " + (error.message || "Sprawdź połączenie z bazą."));
     } finally {
       setIsFixing(false);
     }
