@@ -44,7 +44,7 @@ const PodnosnikiTable = ({ setActiveTab }) => {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white/20 backdrop-blur-lg rounded-lg flex items-center justify-center"><span className="text-xl">⬆️</span></div>
             <div>
-              <h1 className="text-xl font-bold text-white">Podnośniki BLUM</h1>
+              <h1 className="text-xl font-bold text-white">Podnośniki</h1>
               <p className="text-rose-100 text-sm opacity-90 hidden sm:block">Aventos HL i HK-XS do szafek górnych</p>
             </div>
           </div>

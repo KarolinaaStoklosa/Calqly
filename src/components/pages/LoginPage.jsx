@@ -92,7 +92,7 @@ const LoginPage = () => {
             <div className="flex justify-between items-center mb-1">
                 <label className="text-sm font-semibold text-gray-700">Hasło</label>
                 {/* Opcjonalnie: Link do resetu hasła */}
-                <Link to="/forgot-password" class="text-xs text-blue-600 hover:underline">Zapomniałeś hasła?</Link>
+                
             </div>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
