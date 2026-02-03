@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useProject } from '../../context/ProjectContext';
-import { Menu, User, LogOut, Edit, Save, X, Loader2, ChevronRight, FileText, Settings } from 'lucide-react'; // Usunąłem 'Calculator', bo mamy logo.svg
+import { Menu, User, LogOut, Edit, Save, X, Loader2, FileText } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import BillingStatus from '../billing/BilingStatus';
 
@@ -57,7 +57,7 @@ const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-gray-200 bg-white/95 backdrop-blur-lg dark:border-gray-800 dark:bg-gray-900/90 shadow-sm">
-      <div className="mx-auto flex h-18 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 py-2">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 py-2">
         
         {/* === LEWA STRONA (LOGO + MENU) === */}
         <div className="flex items-center gap-4 lg:gap-6">
@@ -70,9 +70,8 @@ const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
           </button>
           
           <Link to="/" className="flex items-center gap-3 group">
-            {/* LOGO SVG */}
+            {/* LOGO SVG - ZWIĘKSZONE */}
             <div className="relative h-10 w-10 flex items-center justify-center">
-                {/* Jeśli plik logo.svg jest w folderze public */}
                 <img 
                     src="/logo.svg" 
                     alt="Qalqly Logo" 
@@ -80,14 +79,11 @@ const Header = ({ darkMode, toggleDarkMode, toggleSidebar }) => {
                 />
             </div>
             
-            {/* TYPOGRAFIA LOGO */}
+            {/* TYPOGRAFIA LOGO - Q POMARAŃCZOWE */}
             <div className="hidden sm:block">
               <h1 className="text-2xl font-black tracking-tighter text-gray-900 dark:text-white leading-none">
-                QAL<span className="text-brand-500">Q</span>LY
+                <span className="text-brand-500">Q</span>AL<span className="text-brand-500">Q</span>LY
               </h1>
-              <p className="text-[9px] font-bold tracking-[0.2em] text-gray-400 uppercase mt-0.5 group-hover:text-brand-500 transition-colors">
-                Woodly Group
-              </p>
             </div>
           </Link>
         </div>

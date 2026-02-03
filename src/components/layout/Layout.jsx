@@ -29,7 +29,6 @@ const Layout = ({ children }) => {
       />
       
       <div className="flex flex-1 relative overflow-hidden">
-        {/* Nawigacja z obsługą mobilną */}
         <Navigation 
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -37,14 +36,11 @@ const Layout = ({ children }) => {
           closeSidebar={closeSidebar}
         />
         
-        {/* Główna treść - Poprawione paddingi dla mobile */}
-        <main className="flex-1 w-full overflow-y-auto overflow-x-hidden bg-gray-50 dark:bg-gray-900 scroll-smooth">
-          <div className="max-w-7xl mx-auto px-3 py-4 md:px-6 md:py-8 lg:px-8">
+        {/* Zmieniono padding: p-3 na mobile, p-8 na desktopie */}
+        <main className="flex-1 w-full overflow-y-auto bg-gray-50 p-3 md:p-6 lg:p-8 pb-20 md:pb-8">
+          <div className="max-w-7xl mx-auto">
              <ExpirationNotifier />
-             {/* Kontener na treść */}
-             <div className="animate-in fade-in duration-300">
-                {children({activeTab, setActiveTab})}
-             </div>
+            {children({activeTab, setActiveTab})}
           </div>
         </main>
       </div>

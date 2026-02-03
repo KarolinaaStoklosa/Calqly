@@ -1,13 +1,17 @@
 import React from 'react';
 import { 
-  Package, Eye, Package2, FileInput, 
-  ChevronRight, X, LogOut, FileText
+  Calculator, Archive, Book,
+  Package, Eye, Move, Grip, RotateCcw, ArrowUp, 
+  Package2, Square, Wrench, Plus, LifeBuoy, 
+  FileInput, PieChart, X,
+  ChevronRight, Sparkles, FileText, Shield
 } from 'lucide-react';
 import { useProject } from '../../context/ProjectContext';
 import { Link } from 'react-router-dom';
 
 const Navigation = ({ activeTab, setActiveTab, isOpen, closeSidebar }) => {
 
+  const { resetProject } = useProject();
   const appVersion = "1.0.0";
   
   const menuItems = [
@@ -19,43 +23,42 @@ const Navigation = ({ activeTab, setActiveTab, isOpen, closeSidebar }) => {
     { id: 'szafki', label: 'Szafki/Korpusy', icon: Package, category: 'calculation' },
     { id: 'szuflady', label: 'Szuflady', icon: Package2, category: 'calculation' },
     { id: 'widocznyBok', label: 'Widoczny Bok', icon: Eye, category: 'calculation' },
-    { id: 'drzwiPrzesuwne', label: 'Drzwi Przesuwne', icon: Package, category: 'calculation' },
-    { id: 'uchwyty', label: 'Uchwyty', icon: Package, category: 'calculation' },
-    { id: 'zawiasy', label: 'Zawiasy', icon: Package, category: 'calculation' },
-    { id: 'podnosniki', label: 'Podnośniki', icon: Package, category: 'calculation' },
-    { id: 'blaty', label: 'Blaty i Usługi', icon: Package, category: 'calculation' },
-    { id: 'akcesoria', label: 'Akcesoria', icon: Package, category: 'calculation' },
+    { id: 'drzwiPrzesuwne', label: 'Drzwi Przesuwne', icon: Move, category: 'calculation' },
+    { id: 'uchwyty', label: 'Uchwyty', icon: Grip, category: 'calculation' },
+    { id: 'zawiasy', label: 'Zawiasy', icon: RotateCcw, category: 'calculation' },
+    { id: 'podnosniki', label: 'Podnośniki', icon: ArrowUp, category: 'calculation' },
+    { id: 'blaty', label: 'Blaty i Usługi', icon: Square, category: 'calculation' },
+    { id: 'akcesoria', label: 'Akcesoria', icon: Wrench, category: 'calculation' },
   ];
 
   return (
     <>
-      {/* 1. BACKDROP (Tylko Mobile) - Ciemne tło po otwarciu menu */}
+      {/* Tło przyciemniające (Backdrop) dla mobile */}
       {isOpen && (
         <div 
           onClick={closeSidebar}
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity lg:hidden"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm transition-opacity"
         />
       )}
 
-      {/* 2. SIDEBAR */}
-      <aside 
-        className={`
-          fixed top-0 left-0 z-50 h-full w-[280px] bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-2xl lg:shadow-none
-          transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-0
-          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        `}
-      >
-        {/* Nagłówek Menu na Mobile */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-100 lg:hidden">
-            <span className="font-bold text-lg text-gray-800">Menu</span>
-            <button onClick={closeSidebar} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
-                <X className="w-5 h-5 text-gray-600" />
+      <aside className={`
+        fixed top-0 left-0 z-50 h-[100dvh] w-[280px] bg-white border-r border-gray-200 
+        transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:h-[calc(100vh-4rem)] 
+        flex flex-col shadow-2xl lg:shadow-none
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        
+        {/* Nagłówek Menu (Tylko Mobile) */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-100 lg:hidden shrink-0">
+            <span className="font-bold text-gray-900">Menu</span>
+            <button onClick={closeSidebar} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 text-gray-600">
+                <X className="w-5 h-5" />
             </button>
         </div>
 
-        {/* Lista Elementów - Scrollowana */}
-        <div className="h-[calc(100%-60px)] overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar">
-          {menuItems.map((item, index) => {
+        {/* Scrollowana Lista Elementów */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-1 custom-scrollbar">
+          {menuItems.map((item) => {
             if (item.type === 'separator') {
               return (
                 <div key={item.id} className="mt-6 mb-2 px-3 text-[11px] font-black tracking-widest text-gray-400 uppercase">
@@ -63,10 +66,10 @@ const Navigation = ({ activeTab, setActiveTab, isOpen, closeSidebar }) => {
                 </div>
               );
             }
-
+            
             const Icon = item.icon;
             const isActive = activeTab === item.id;
-
+            
             return (
               <button
                 key={item.id}
@@ -75,33 +78,44 @@ const Navigation = ({ activeTab, setActiveTab, isOpen, closeSidebar }) => {
                   if (window.innerWidth < 1024) closeSidebar();
                 }}
                 className={`
-                  relative group flex items-center w-full px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200
+                  w-full flex items-center px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200
                   ${isActive 
-                    ? 'bg-brand-50 text-brand-700 shadow-sm ring-1 ring-brand-200' 
+                    ? 'bg-brand-50 text-brand-700 shadow-sm ring-1 ring-brand-100' 
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }
                 `}
               >
-                {isActive && (
-                    <div className="absolute left-0 h-8 w-1 bg-brand-500 rounded-r-full" />
-                )}
-                
-                <Icon className={`w-5 h-5 mr-3 transition-colors ${isActive ? 'text-brand-500' : 'text-gray-400 group-hover:text-gray-600'}`} />
-                
-                <span className="flex-1 text-left">{item.label}</span>
-                
-                {isActive && <ChevronRight className="w-4 h-4 text-brand-400" />}
+                <Icon className={`w-5 h-5 mr-3 transition-colors ${isActive ? 'text-brand-600' : 'text-gray-400'}`} />
+                {item.label}
+                {isActive && <ChevronRight className="ml-auto w-4 h-4 text-brand-400" />}
               </button>
             );
           })}
+          {/* Dodatkowy padding na dole listy, żeby nie ucięło ostatniego elementu na małych ekranach */}
+          <div className="h-6"></div>
         </div>
 
-        {/* Stopka Nawigacji */}
-        <div className="absolute bottom-0 w-full p-4 border-t border-gray-100 bg-gray-50/50 dark:border-gray-700 dark:bg-gray-800">
-            <div className="flex flex-col gap-2 text-[10px] text-gray-400 text-center">
-                <Link to="/polityka-prywatnosci" className="hover:text-brand-500 transition-colors">Polityka Prywatności</Link>
-                <span>v{appVersion} • Qalqly App</span>
-            </div>
+        {/* Stopka (Przyklejona na dole) */}
+        <div className="p-4 border-t border-gray-200 bg-gray-50/80 shrink-0 safe-area-bottom">
+          <div className="space-y-1 text-sm">
+            <Link to="/regulamin" className="flex items-center p-2 rounded-lg text-gray-500 hover:text-brand-600 hover:bg-brand-50 transition-colors">
+              <Book className="w-4 h-4 mr-3" /> Regulamin
+            </Link>
+            <Link to="/polityka-prywatnosci" className="flex items-center p-2 rounded-lg text-gray-500 hover:text-brand-600 hover:bg-brand-50 transition-colors">
+              <Shield className="w-4 h-4 mr-3" /> Polityka Prywatności
+            </Link>
+             <Link to="/disclaimer" className="flex items-center p-2 rounded-lg text-gray-500 hover:text-brand-600 hover:bg-brand-50 transition-colors">
+              <LifeBuoy className="w-4 h-4 mr-3" /> Nota Prawna
+            </Link>
+          </div>
+          
+          <div className="text-xs text-gray-400 space-y-1 pt-3 border-t border-gray-200 mt-2 text-center">
+            <p className="font-bold text-gray-600">QALQLY APP</p>
+            <p className="text-[10px] uppercase tracking-wider text-brand-500 font-bold">
+              by WOODLY GROUP
+            </p>
+            <p>v{appVersion}</p>
+          </div>
         </div>
       </aside>
     </>
