@@ -40,18 +40,18 @@ const WelcomeScreen = ({ setActiveTab }) => {
   };
 
   return (
-    // ZMIANA: Usunięto fioletowe gradienty tła, teraz jest czyste i profesjonalne
-    <div className="bg-gray-50 p-8 text-center flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] rounded-xl">
+    // ZMIANA: Tło zmienione na gradient from-brand-50 to-orange-100 (jak w Kalkulacji)
+    <div className="bg-gradient-to-br from-brand-50 to-orange-100 border border-brand-100 p-8 text-center flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] rounded-xl">
       
       {/* IKONA GŁÓWNA */}
-      <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-gray-200">
+      <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-brand-100">
         <div className="w-16 h-16 bg-brand-50 rounded-full flex items-center justify-center">
           <Sparkles className="w-8 h-8 text-brand-500" />
         </div>
       </div>
 
       <h1 className="text-3xl font-bold text-gray-900">Witaj w Aplikacji!</h1>
-      <p className="text-gray-500 mt-3 max-w-lg mx-auto mb-10">
+      <p className="text-gray-600 mt-3 max-w-lg mx-auto mb-10">
         Skonfiguruj dane Firmy, zarządzaj materiałami i stwórz nowy projekt lub otwórz istniejący z archiwum.
       </p>
 
@@ -70,7 +70,7 @@ const WelcomeScreen = ({ setActiveTab }) => {
         {/* Przycisk: Otwórz Archiwum (Drugorzędny - Biały) */}
         <button 
           onClick={() => setActiveTab('archive')}
-          className="flex-1 flex items-center justify-center px-6 py-4 bg-white text-gray-700 border border-gray-200 rounded-xl font-bold shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+          className="flex-1 flex items-center justify-center px-6 py-4 bg-white text-gray-700 border border-gray-200 rounded-xl font-bold shadow-sm hover:bg-white/80 hover:border-brand-200 transition-all duration-200"
         >
           <FolderOpen className="w-5 h-5 mr-2 text-gray-400" />
           Otwórz z Archiwum
