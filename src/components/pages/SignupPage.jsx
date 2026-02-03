@@ -68,7 +68,7 @@ const SignupPage = () => {
                 type="email" 
                 placeholder="twoj@email.com"
                 {...register('email', { required: 'Email jest wymagany' })} 
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" 
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all" 
               />
             </div>
             {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
@@ -88,7 +88,7 @@ const SignupPage = () => {
                     required: 'Hasło jest wymagane', 
                     minLength: { value: 6, message: 'Hasło musi mieć co najmniej 6 znaków' } 
                 })} 
-                className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" 
+                className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all" 
               />
                <button 
                 type="button"
@@ -115,36 +115,36 @@ const SignupPage = () => {
                     required: 'Potwierdzenie hasła jest wymagane', 
                     validate: value => value === password || 'Hasła nie są takie same' 
                 })} 
-                className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" 
+                className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all" 
               />
             </div>
             {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</p>}
           </div>
 
           {/* CHECKBOX */}
-          <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100">
+          <div className="bg-brand-50/50 p-3 rounded-lg border border-brand-100">
             <div className="flex items-start">
               <input 
                 id="accept-disclaimer"
                 type="checkbox" 
                 {...register('acceptDisclaimer', { required: 'Akceptacja jest wymagana' })}
-                className="h-4 w-4 mt-1 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                className="h-4 w-4 mt-1 text-brand-600 border-gray-300 rounded focus:ring-brand-500 cursor-pointer"
               />
               <label htmlFor="accept-disclaimer" className="ml-3 text-xs text-gray-600 leading-relaxed cursor-pointer">
                 Rozumiem, że Qalqly jest narzędziem wspomagającym i zobowiązuję się do weryfikacji wyników. 
-                Akceptuję <Link to="/disclaimer" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">Regulamin i Oświadczenie</Link>.
+                Akceptuję <Link to="/disclaimer" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline font-medium">Regulamin i Oświadczenie</Link>.
               </label>
             </div>
             {errors.acceptDisclaimer && <p className="text-red-500 text-xs mt-1 ml-7">{errors.acceptDisclaimer.message}</p>}
           </div>
 
-          <button type="submit" disabled={loading} className="w-full py-3 font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-blue-300 transition-colors shadow-md">
+          <button type="submit" disabled={loading} className="w-full py-3 font-semibold text-white bg-brand-600 rounded-lg hover:bg-brand-700 disabled:bg-brand-300 transition-colors shadow-md">
             {loading ? 'Tworzenie konta...' : 'Zarejestruj się'}
           </button>
         </form>
 
         <p className="text-sm text-center text-gray-600">
-          Masz już konto? <Link to="/login" className="font-semibold text-blue-600 hover:text-blue-800 transition-colors">Zaloguj się</Link>
+          Masz już konto? <Link to="/login" className="font-semibold text-brand-600 hover:text-brand-800 transition-colors">Zaloguj się</Link>
         </p>
       </div>
     </div>

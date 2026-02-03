@@ -79,15 +79,15 @@ const [wantsInvoice, setWantsInvoice] = useState(false); // <--- NOWY STAN
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 relative">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-brand-50 relative">
       <AuthHeader />
       
       <div className="container mx-auto px-4 py-16 flex flex-col items-center justify-center min-h-screen">
         
         {/* NAGŁÓWEK */}
         <div className="text-center mb-10 max-w-2xl">
-          <div className="inline-flex items-center justify-center p-3 bg-blue-100 rounded-2xl mb-6">
-            <Star className="w-8 h-8 text-blue-600 fill-blue-600" />
+          <div className="inline-flex items-center justify-center p-3 bg-brand-100 rounded-2xl mb-6">
+            <Star className="w-8 h-8 text-brand-600 fill-brand-600" />
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
             Wybierz swój plan
@@ -100,7 +100,7 @@ const [wantsInvoice, setWantsInvoice] = useState(false); // <--- NOWY STAN
         <div className="flex items-center justify-center mt-4 mb-8">
     <label className="flex items-center space-x-2 cursor-pointer select-none group">
         <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
-            wantsInvoice ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-300 group-hover:border-blue-400'
+            wantsInvoice ? 'bg-brand-600 border-brand-600' : 'bg-white border-gray-300 group-hover:border-brand-400'
         }`}>
             {wantsInvoice && <CheckCircle2 size={14} className="text-white" />}
         </div>
@@ -121,7 +121,7 @@ const [wantsInvoice, setWantsInvoice] = useState(false); // <--- NOWY STAN
                 onClick={() => setBillingMode('subscription')}
                 className={`flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
                     billingMode === 'subscription' 
-                    ? 'bg-blue-600 text-white shadow-md' 
+                    ? 'bg-brand-600 text-white shadow-md' 
                     : 'text-gray-500 hover:bg-gray-50'
                 }`}
             >
@@ -134,7 +134,7 @@ const [wantsInvoice, setWantsInvoice] = useState(false); // <--- NOWY STAN
                 onClick={() => setBillingMode('payment')}
                 className={`flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all duration-200 ${
                     billingMode === 'payment' 
-                    ? 'bg-blue-600 text-white shadow-md' 
+                    ? 'bg-brand-600 text-white shadow-md' 
                     : 'text-gray-500 hover:bg-gray-50'
                 }`}
             >
@@ -182,7 +182,7 @@ const [wantsInvoice, setWantsInvoice] = useState(false); // <--- NOWY STAN
             <button 
                 onClick={() => handleSubscribe(MONTHLY_PRICE_ID)} 
                 disabled={!!loading} 
-                className="w-full py-4 font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors disabled:opacity-70 flex justify-center items-center gap-2"
+                className="w-full py-4 font-bold text-brand-600 bg-brand-50 hover:bg-brand-100 rounded-xl transition-colors disabled:opacity-70 flex justify-center items-center gap-2"
             >
                {loading === MONTHLY_PRICE_ID ? (
                    <><Loader2 className="w-4 h-4 animate-spin" /> Przetwarzanie...</>
@@ -193,13 +193,13 @@ const [wantsInvoice, setWantsInvoice] = useState(false); // <--- NOWY STAN
           </div>
 
           {/* PLAN ROCZNY (Wyróżniony) */}
-          <div className="bg-white rounded-3xl p-8 shadow-2xl border-2 border-blue-500 flex flex-col relative overflow-hidden transform md:-translate-y-4">
-            <div className="absolute top-0 right-0 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-bl-xl">
+          <div className="bg-white rounded-3xl p-8 shadow-2xl border-2 border-brand-500 flex flex-col relative overflow-hidden transform md:-translate-y-4">
+            <div className="absolute top-0 right-0 bg-brand-500 text-white text-xs font-bold px-3 py-1 rounded-bl-xl">
               NAJCZĘŚCIEJ WYBIERANY
             </div>
             
             <div className="mb-6">
-              <h3 className="text-lg font-semibold text-blue-600 uppercase tracking-wide">Roczny</h3>
+              <h3 className="text-lg font-semibold text-brand-600 uppercase tracking-wide">Roczny</h3>
               <div className="flex flex-col mt-2">
                 <div className="flex items-baseline gap-1">
                      <span className="text-4xl font-bold text-gray-900">499 zł</span>
@@ -215,15 +215,15 @@ const [wantsInvoice, setWantsInvoice] = useState(false); // <--- NOWY STAN
 
             <ul className="space-y-4 mb-8 flex-1">
               <li className="flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-blue-500 shrink-0" />
+                <CheckCircle2 className="w-5 h-5 text-brand-500 shrink-0" />
                 <span className="text-gray-700 font-medium text-sm">Wszystko co w pakiecie miesięcznym</span>
               </li>
               <li className="flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-blue-500 shrink-0" />
+                <CheckCircle2 className="w-5 h-5 text-brand-500 shrink-0" />
                 <span className="text-gray-700 font-medium text-sm">Priorytetowe wsparcie techniczne</span>
               </li>
               <li className="flex items-start gap-3">
-                <CheckCircle2 className="w-5 h-5 text-blue-500 shrink-0" />
+                <CheckCircle2 className="w-5 h-5 text-brand-500 shrink-0" />
                 <span className="text-gray-700 font-medium text-sm">Gwarancja stałej ceny przy odnowieniu</span>
               </li>
             </ul>
@@ -233,7 +233,7 @@ const [wantsInvoice, setWantsInvoice] = useState(false); // <--- NOWY STAN
                 <button 
                     onClick={() => handleSubscribe(YEARLY_PRICE_ID)} 
                     disabled={!!loading} 
-                    className="w-full py-4 font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all disabled:opacity-70 flex justify-center items-center gap-2"
+                    className="w-full py-4 font-bold text-white bg-gradient-to-r from-brand-600 to-indigo-600 rounded-xl hover:from-brand-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all disabled:opacity-70 flex justify-center items-center gap-2"
                 >
                 {loading === YEARLY_PRICE_ID ? (
                     <><Loader2 className="w-4 h-4 animate-spin" /> Przetwarzanie...</>

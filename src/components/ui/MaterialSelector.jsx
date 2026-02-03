@@ -63,13 +63,13 @@ const MaterialSelector = ({
         className={`
           flex items-center justify-between w-full px-3 py-2 
           border border-gray-300 rounded-lg bg-white shadow-sm transition-all duration-200
-          ${isOpen ? 'ring-2 ring-blue-100 border-blue-500' : 'hover:border-gray-400'}
+          ${isOpen ? 'ring-2 ring-brand-100 border-brand-500' : 'hover:border-gray-400'}
           ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'cursor-text'}
         `}
         onClick={() => !disabled && setIsOpen(true)}
       >
         <div className="flex items-center flex-1 min-w-0 gap-2">
-          <Search size={16} className={`flex-shrink-0 ${isOpen ? 'text-blue-500' : 'text-gray-400'}`} />
+          <Search size={16} className={`flex-shrink-0 ${isOpen ? 'text-brand-500' : 'text-gray-400'}`} />
           
           <input
             type="text"
@@ -121,7 +121,7 @@ const MaterialSelector = ({
                     className={`
                         px-3 py-2.5 text-sm cursor-pointer border-b border-gray-50 last:border-0 
                         flex justify-between items-center group transition-colors
-                        ${opt.nazwa === value ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50'}
+                        ${opt.nazwa === value ? 'bg-brand-50 text-brand-700' : 'text-gray-700 hover:bg-gray-50'}
                     `}
                     onClick={() => handleSelect(opt.nazwa)}
                 >
@@ -138,7 +138,7 @@ const MaterialSelector = ({
                                 {opt.cena.toFixed(2)} zł
                             </span>
                         )}
-                        {opt.nazwa === value && <Check size={14} className="text-blue-600" />}
+                        {opt.nazwa === value && <Check size={14} className="text-brand-600" />}
                     </div>
                 </div>
                 ))}
