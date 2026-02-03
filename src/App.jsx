@@ -1,4 +1,4 @@
-import React, { useEffect }  from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ProjectProvider, useProject } from './context/ProjectContext';
 import { AuthProvider } from './context/AuthContext'; 
@@ -25,7 +25,7 @@ import CalculationSection from './components/sections/CalculationSection';
 import CompanySettings from './components/sections/CompanySettings';
 import ArchivePage from './components/sections/ArchivePage';
 import MaterialsManager from './components/sections/MaterialsManager';
-import { Sparkles, FilePlus } from 'lucide-react';
+import { Sparkles, FilePlus, FolderOpen } from 'lucide-react';
 import LegalPage from './components/pages/LegalPage.jsx';
 import { TermsContent, PrivacyPolicyContent, DisclaimerContent } from './data/legalContent.jsx'; 
 import CookieConsentBanner from './components/layout/CookieConsentBanner'; 
@@ -33,37 +33,50 @@ import Footer from './components/layout/Footer';
 
 const WelcomeScreen = ({ setActiveTab }) => {
   const { resetProject } = useProject();
+  
   const handleCreateFirstProject = () => {
     resetProject();
     setActiveTab('projectSetup');
   };
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 via-brand-50 to-indigo-50 p-8 text-center flex flex-col items-center justify-center min-h-[calc(100vh-8rem)]">
-      <div className="w-24 h-24 bg-gradient-to-br from-brand-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-        <div className="w-16 h-16 bg-gradient-to-br from-brand-500 to-purple-500 rounded-full flex items-center justify-center">
-          <Sparkles className="w-8 h-8 text-white" />
+    // ZMIANA: Usunięto fioletowe gradienty tła, teraz jest czyste i profesjonalne
+    <div className="bg-gray-50 p-8 text-center flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] rounded-xl">
+      
+      {/* IKONA GŁÓWNA */}
+      <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-gray-200">
+        <div className="w-16 h-16 bg-brand-50 rounded-full flex items-center justify-center">
+          <Sparkles className="w-8 h-8 text-brand-500" />
         </div>
       </div>
-      <h1 className="text-4xl font-bold text-gray-900">Witaj w Aplikacji!</h1>
-      <p className="text-gray-600 mt-4 max-w-xl mx-auto">
-        Skonfiguruj dane Firmy, zarządzaj materiałam i stwórz nowy projekt lub otwórz istniejący z archiwum.
-        
+
+      <h1 className="text-3xl font-bold text-gray-900">Witaj w Aplikacji!</h1>
+      <p className="text-gray-500 mt-3 max-w-lg mx-auto mb-10">
+        Skonfiguruj dane Firmy, zarządzaj materiałami i stwórz nowy projekt lub otwórz istniejący z archiwum.
       </p>
-      <button 
-        onClick={handleCreateFirstProject}
-        className="mt-8 flex items-center justify-center px-8 py-4 bg-gradient-to-r from-brand-600 to-purple-600 text-white rounded-xl font-semibold shadow-lg hover:from-brand-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
-      >
-        <FilePlus className="w-5 h-5 mr-2" />
-        Utwórz Projekt
-      </button>
-      <button 
-        onClick={() => setActiveTab('archive')}
-        className="mt-8 flex items-center justify-center px-8 py-4 bg-gradient-to-r from-brand-600 to-purple-600 text-white rounded-xl font-semibold shadow-lg hover:from-brand-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
-      >
-        <FilePlus className="w-5 h-5 mr-2" />
-        Otwórz istniejący projekt
-      </button>
+
+      {/* PRZYCISKI AKCJI */}
+      <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
+        
+        {/* Przycisk: Utwórz Projekt (Główny - Pomarańczowy) */}
+        <button 
+          onClick={handleCreateFirstProject}
+          className="flex-1 flex items-center justify-center px-6 py-4 bg-brand-500 text-white rounded-xl font-bold shadow-md shadow-brand-500/20 hover:bg-brand-600 hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
+        >
+          <FilePlus className="w-5 h-5 mr-2" />
+          Utwórz Projekt
+        </button>
+
+        {/* Przycisk: Otwórz Archiwum (Drugorzędny - Biały) */}
+        <button 
+          onClick={() => setActiveTab('archive')}
+          className="flex-1 flex items-center justify-center px-6 py-4 bg-white text-gray-700 border border-gray-200 rounded-xl font-bold shadow-sm hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+        >
+          <FolderOpen className="w-5 h-5 mr-2 text-gray-400" />
+          Otwórz z Archiwum
+        </button>
+      </div>
+      
     </div>
   );
 };
@@ -117,7 +130,7 @@ const MainCalculatorApp = () => {
 
         return (
           <>
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               {componentToRender}
             </div>
             {projectData && <ProjectStatusFooter />}
@@ -151,7 +164,6 @@ function App() {
                   <ProtectedRoute>
                     <>
                       <MainCalculatorApp />
-                      {/* ✅ DODAJEMY MINIMALISTYCZNĄ STOPKĘ TUTAJ */}
                       <Footer />
                     </>
                   </ProtectedRoute>
@@ -171,17 +183,15 @@ const ProjectStatusFooter = () => {
   const grossTotal = totals?.grossTotal || 0;
 
   return (
-    <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-gray-600 dark:text-gray-400">
-          📂 Projekt: <span className="font-medium text-gray-900 dark:text-gray-50">{projectName}</span>
+    <div className="mt-6 p-4 bg-white rounded-lg border border-gray-200 shadow-sm flex items-center justify-between text-sm">
+        <span className="text-gray-500">
+          📂 Projekt: <span className="font-semibold text-gray-900 ml-1">{projectName}</span>
         </span>
-        <span className="text-gray-600 dark:text-gray-400">
-          💰 Wartość: <span className="font-mono font-bold text-green-600">
+        <span className="text-gray-500">
+          💰 Wartość: <span className="font-bold text-brand-600 ml-1 text-base">
             {grossTotal.toFixed(2)} zł
           </span>
         </span>
-      </div>
     </div>
   );
 };

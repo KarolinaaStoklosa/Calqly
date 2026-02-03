@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layers, TrendingUp, Plus, Trash2, Home, Truck, AlertTriangle, Gift } from 'lucide-react';
+import { TrendingUp, Plus, Trash2, Home, Truck, AlertTriangle, Gift } from 'lucide-react';
 import { useProject } from '../../context/ProjectContext';
 import { useProjectMetrics } from '../../hooks/useProjectMetrics';
 
@@ -37,18 +37,19 @@ const CalculationSection = () => {
   };
 
   return (
-    <div className="space-y-6 p-4 md:p-6 pb-24"> {/* Dodatkowy padding na dole dla mobile */}
+    <div className="space-y-6 p-4 md:p-6 pb-24">
       
       {/* SEKCJA 1: PODSUMOWANIE FINANSOWE */}
-      <div className="bg-gradient-to-br from-brand-50 to-indigo-100 rounded-xl shadow-sm border border-brand-100 p-4 md:p-6">
+      {/* ZMIANA: Gradient indigo -> orange */}
+      <div className="bg-gradient-to-br from-brand-50 to-orange-100 rounded-xl shadow-sm border border-brand-100 p-4 md:p-6">
         <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
             <span>💰</span> Podsumowanie finansowe
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <StatCard title="Materiały bazowe" value={formatPrice(totals.materialsTotal)} color="brand" />
-            <StatCard title="Koszty dodatkowe" value={formatPrice(totals.additionalTotal)} color="green" />
-            <StatCard title={`Narzut (${settings.margin}%)`} value={formatPrice(totals.marginAmount)} color="purple" />
-            <StatCard title="CENA KOŃCOWA" value={formatPrice(totals.grossTotal)} color="red" isLarge={true} />
+            <StatCard title="Materiały bazowe" value={formatPrice(totals.materialsTotal)} color="gray" />
+            <StatCard title="Koszty dodatkowe" value={formatPrice(totals.additionalTotal)} color="gray" />
+            <StatCard title={`Narzut (${settings.margin}%)`} value={formatPrice(totals.marginAmount)} color="brand" />
+            <StatCard title="CENA KOŃCOWA" value={formatPrice(totals.grossTotal)} color="orange" isLarge={true} />
         </div>
         
         <div className="bg-white/60 backdrop-blur-md rounded-xl p-4 md:p-6 border border-white/50 shadow-sm">
@@ -106,7 +107,7 @@ const CalculationSection = () => {
 
                     {/* Dno szuflady */}
                     <div className='bg-white p-3 rounded-lg border border-gray-200 shadow-sm'>
-                         <div className="flex flex-col md:flex-row md:items-center gap-3">
+                          <div className="flex flex-col md:flex-row md:items-center gap-3">
                             <span className='text-sm font-medium text-gray-700 flex-1'>Płyta na dno szuflady (m²)</span>
                             <div className="flex items-center gap-3 justify-between md:justify-end w-full md:w-auto">
                                 <div className='w-24'><NumberInput value={settings.doliczone.plytaNaDnoSzuflady.surfacePerDrawer} onChange={e => handleDoliczoneChange('plytaNaDnoSzuflady', 'surfacePerDrawer', parseFloat(e.target.value))} /></div>
@@ -123,7 +124,8 @@ const CalculationSection = () => {
                 <h4 className='font-semibold text-gray-700 mb-4 text-sm uppercase tracking-wide'>Usługi i Montaż</h4>
                 <div className="space-y-3">
                 {(settings.serviceItems || []).map(item => <EditableListItem key={item.id} item={item} type="serviceItems" onChange={handleItemChange} onRemove={handleRemoveItem} hasQuantity /> )}
-                <button onClick={() => handleAddItem('serviceItems', { name: 'Nowa usługa', pricePerUnit: 0, quantity: 1, unit: 'szt', active: true })} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-green-500 hover:bg-green-50 hover:text-green-600 flex items-center justify-center gap-2 transition-all font-medium text-sm">
+                {/* ZMIANA: Zielony hover -> Pomarańczowy hover */}
+                <button onClick={() => handleAddItem('serviceItems', { name: 'Nowa usługa', pricePerUnit: 0, quantity: 1, unit: 'szt', active: true })} className="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-brand-500 hover:bg-brand-50 hover:text-brand-600 flex items-center justify-center gap-2 transition-all font-medium text-sm">
                     <Plus className="w-4 h-4" />Dodaj kolejną usługę
                 </button>
                 </div>
@@ -134,13 +136,15 @@ const CalculationSection = () => {
       {/* SEKCJA 3: USTAWIENIA SZCZEGÓŁOWE */}
       <div className="bg-white rounded-xl shadow-sm border p-4 md:p-6">
         <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-            <div className="p-2 bg-purple-50 rounded-lg"><TrendingUp className="w-5 h-5 text-purple-600"/></div>
+            {/* ZMIANA: Purple -> Brand */}
+            <div className="p-2 bg-brand-50 rounded-lg"><TrendingUp className="w-5 h-5 text-brand-600"/></div>
             Narzut i Wycena
         </h3>
         
-        <div className='p-4 bg-purple-50/50 rounded-xl mb-6 mt-4 border border-purple-100'>
+        {/* ZMIANA: Purple -> Brand */}
+        <div className='p-4 bg-brand-50/50 rounded-xl mb-6 mt-4 border border-brand-100'>
           <fieldset disabled={!isEditMode}>
-            <div className='flex justify-between text-sm mb-4 bg-white p-3 rounded-lg border border-purple-100 shadow-sm'>
+            <div className='flex justify-between text-sm mb-4 bg-white p-3 rounded-lg border border-brand-100 shadow-sm'>
                 <span className='text-gray-600'>Podstawa do naliczeń:</span>
                 <span className='font-bold text-gray-800'>{formatPrice(totals.subtotal)}</span>
             </div>
@@ -148,28 +152,29 @@ const CalculationSection = () => {
           </fieldset>
         </div>
         
-        <div className='p-4 bg-red-50/50 rounded-xl mb-6 border border-red-100'>
+        {/* ZMIANA: Red -> Orange (lub Brand, dla spójności) */}
+        <div className='p-4 bg-orange-50/50 rounded-xl mb-6 border border-orange-100'>
           <fieldset disabled={!isEditMode}>
           <h4 className='font-semibold text-gray-800 mb-4 flex items-center gap-2 text-sm uppercase tracking-wide'>
-              <Gift className="w-4 h-4 text-red-500"/> Pozycje Niemarżowane
+              <Gift className="w-4 h-4 text-orange-500"/> Pozycje Niemarżowane
           </h4>
           
           <div className="space-y-3">
             {(settings.nonMarginableItems || []).map(item => (
-                <div key={item.id} className="bg-white p-3 rounded-lg border border-red-100 shadow-sm">
+                <div key={item.id} className="bg-white p-3 rounded-lg border border-orange-100 shadow-sm">
                     {/* Mobile Grid Layout */}
                     <div className="grid grid-cols-12 gap-3 items-center">
                         {/* Wiersz 1: Checkbox + Nazwa */}
                         <div className='col-span-1 flex items-center justify-center'>
-                            <input type="checkbox" checked={item.active} onChange={e => handleNonMarginableChange(item.id, 'active', e.target.checked)} className="w-5 h-5 text-red-600 focus:ring-red-500 border-gray-300 rounded" />
+                            <input type="checkbox" checked={item.active} onChange={e => handleNonMarginableChange(item.id, 'active', e.target.checked)} className="w-5 h-5 text-orange-600 focus:ring-orange-500 border-gray-300 rounded" />
                         </div>
                         <div className='col-span-10 md:col-span-5'>
-                            <input type="text" value={item.name} onChange={e => handleNonMarginableChange(item.id, 'name', e.target.value)} className="w-full p-2 bg-gray-50 border-gray-200 border rounded-lg text-sm focus:ring-2 focus:ring-red-500" placeholder="Nazwa pozycji" />
+                            <input type="text" value={item.name} onChange={e => handleNonMarginableChange(item.id, 'name', e.target.value)} className="w-full p-2 bg-gray-50 border-gray-200 border rounded-lg text-sm focus:ring-2 focus:ring-orange-500" placeholder="Nazwa pozycji" />
                         </div>
-                         <div className='col-span-1 md:hidden flex justify-end'>
+                          <div className='col-span-1 md:hidden flex justify-end'>
                              {/* Trash na mobile w 1 wierszu */}
-                             <button onClick={() => handleRemoveNonMarginableItem(item.id)} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
-                         </div>
+                             <button onClick={() => handleRemoveNonMarginableItem(item.id)} className="text-gray-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+                          </div>
 
                         {/* Wiersz 2 (Mobile) / Ciąg dalszy (Desktop): Procent i Wartość */}
                         <div className='col-span-4 md:col-span-2 md:col-start-7'>
@@ -180,8 +185,8 @@ const CalculationSection = () => {
                         </div>
                         
                         <div className='col-span-8 md:col-span-3 text-right'>
-                            <div className="bg-red-50 py-2 px-3 rounded-lg border border-red-100">
-                                <span className='font-bold text-red-700 text-sm'>{formatPrice(totals.subtotal * ((item.percentage || 0) / 100))}</span>
+                            <div className="bg-orange-50 py-2 px-3 rounded-lg border border-orange-100">
+                                <span className='font-bold text-orange-700 text-sm'>{formatPrice(totals.subtotal * ((item.percentage || 0) / 100))}</span>
                             </div>
                         </div>
 
@@ -193,7 +198,7 @@ const CalculationSection = () => {
             ))}
           </div>
 
-          <button onClick={handleAddNonMarginableItem} className="w-full mt-4 py-3 border-2 border-dashed border-red-200 rounded-xl text-red-500 hover:bg-red-50 flex items-center justify-center gap-2 text-sm font-medium transition-colors">
+          <button onClick={handleAddNonMarginableItem} className="w-full mt-4 py-3 border-2 border-dashed border-orange-200 rounded-xl text-orange-500 hover:bg-orange-50 flex items-center justify-center gap-2 text-sm font-medium transition-colors">
               <Plus className="w-4 h-4" /> Dodaj pozycję niemarżowaną
           </button>
         </fieldset>
@@ -204,7 +209,7 @@ const CalculationSection = () => {
           <CheckboxInput label="Uwzględnij VAT na fakturze" checked={settings.showVAT} onChange={e => handleSettingChange('showVAT', e.target.checked)} />
           {settings.showVAT && (
               <div className="mt-3 bg-white p-3 rounded-lg border border-gray-200 w-full md:w-1/2">
-                   <NumberInput label={`Stawka VAT (%)`} value={settings.vatRate} onChange={e => handleSettingChange('vatRate', parseInt(e.target.value) || 23)} amount={formatPrice(totals.vatAmount)} />
+                    <NumberInput label={`Stawka VAT (%)`} value={settings.vatRate} onChange={e => handleSettingChange('vatRate', parseInt(e.target.value) || 23)} amount={formatPrice(totals.vatAmount)} />
               </div>
           )}
         </fieldset>
@@ -230,16 +235,16 @@ const CalculationSection = () => {
                       </div>
                   )}
               </div>
-              <div className="bg-green-50/50 p-4 rounded-xl border border-green-100">
+              <div className="bg-orange-50/50 p-4 rounded-xl border border-orange-100">
                   <div className="flex items-center gap-2 mb-2 font-semibold text-gray-700 text-sm">
-                       <Home className="w-4 h-4 text-green-600"/> Projekt
+                        <Home className="w-4 h-4 text-orange-600"/> Projekt
                   </div>
                   <CheckboxInput label="Dodatkowa opłata za projekt" checked={settings.projectTypeActive} onChange={e => handleSettingChange('projectTypeActive', e.target.checked)} />
                   {settings.projectTypeActive && (
                       <div className='space-y-3 mt-3 animate-in fade-in slide-in-from-top-2'>
                           <div>
                               <label className="block text-xs font-medium text-gray-500 mb-1">Typ pomieszczenia</label>
-                              <select value={settings.projectType} onChange={e => handleSettingChange('projectType', e.target.value)} className="w-full p-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500">
+                              <select value={settings.projectType} onChange={e => handleSettingChange('projectType', e.target.value)} className="w-full p-2.5 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500">
                                   <option>KUCHNIA</option><option>SZAFA</option><option>ŁAZIENKA</option><option>SALON</option><option>BIURO</option>
                               </select>
                           </div>
@@ -335,11 +340,11 @@ const EditableListItem = ({ item, type, onChange, onRemove, hasQuantity }) => {
 const StatCard = ({ title, value, color, isLarge }) => { 
     const colors = { 
         brand: 'bg-brand-50 text-brand-700 border-brand-200', 
-        green: 'bg-green-50 text-green-700 border-green-200', 
-        purple: 'bg-purple-50 text-purple-700 border-purple-200', 
-        red: 'bg-red-50 text-red-700 border-red-200' 
+        orange: 'bg-orange-50 text-orange-700 border-orange-200', 
+        gray: 'bg-gray-50 text-gray-700 border-gray-200',
+        green: 'bg-green-50 text-green-700 border-green-200', // Dla kontrastu opcjonalnie
     };
-    const current = colors[color] || 'bg-gray-50 text-gray-700 border-gray-200';
+    const current = colors[color] || colors.gray;
 
     return (
         <div className={`rounded-xl p-4 border shadow-sm ${current} transition-transform hover:scale-[1.02]`}>
