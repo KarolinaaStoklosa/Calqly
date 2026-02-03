@@ -111,7 +111,7 @@ const SummaryDashboard = () => {
   const itemCount = Object.values(calculations).flat().length;
 
   const stats = [
-    { title: 'Wartość materiałów', value: formatPrice(totals.materialsTotal), icon: Package, color: 'blue' },
+    { title: 'Wartość materiałów', value: formatPrice(totals.materialsTotal), icon: Package, color: 'brand' },
     { title: 'Pozostałe koszty', value: formatPrice(totals.additionalTotal), icon: DollarSign, color: 'amber' },
     { title: 'Wartość całkowita', value: formatPrice(totals.grossTotal), icon: TrendingUp, color: 'green' },
     { title: 'Liczba pozycji', value: itemCount, icon: Calculator, color: 'purple' }
@@ -132,7 +132,7 @@ const SummaryDashboard = () => {
             <p className="text-gray-600">{projectData?.projectName || 'Nowy Projekt'}</p>
           </div>
           <div className="text-left md:text-right mt-4 md:mt-0">
-            <div className="text-3xl font-bold text-blue-600">{formatPrice(totals.grossTotal)}</div>
+            <div className="text-3xl font-bold text-brand-600">{formatPrice(totals.grossTotal)}</div>
             <div className="text-sm text-gray-500">Wartość całkowita (brutto)</div>
           </div>
         </div>
@@ -157,7 +157,7 @@ const SummaryDashboard = () => {
               }
               return null;
             })}
-            <div className="flex justify-between items-center py-3 border-t-2 border-blue-200 font-bold text-blue-600">
+            <div className="flex justify-between items-center py-3 border-t-2 border-brand-200 font-bold text-brand-600">
               <span>SUMA MATERIAŁY:</span>
               <span>{formatPrice(totals.materialsTotal)}</span>
             </div>
@@ -175,7 +175,7 @@ const SummaryDashboard = () => {
 
 const StatCard = ({ title, value, icon: Icon, color }) => {
   const colorClasses = { 
-    blue: 'bg-blue-50 text-blue-700', 
+    brand: 'bg-brand-50 text-brand-700', 
     amber: 'bg-amber-50 text-amber-700', 
     green: 'bg-green-50 text-green-700', 
     purple: 'bg-purple-50 text-purple-700' 
