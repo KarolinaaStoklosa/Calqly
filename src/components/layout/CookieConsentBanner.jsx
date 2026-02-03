@@ -25,15 +25,15 @@ const CookieConsentBanner = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gray-800/95 backdrop-blur-sm text-white p-4 shadow-lg z-[9999] flex items-center justify-center gap-4 flex-wrap">
-      <Cookie className="w-6 h-6 text-blue-400 flex-shrink-0" />
+      <Cookie className="w-6 h-6 text-brand-400 flex-shrink-0" />
       <p className="text-sm text-center">
         Używamy plików cookie, aby zapewnić najlepszą jakość korzystania z naszej aplikacji. 
-        <Link to="/polityka-prywatnosci" className="underline hover:text-blue-300 ml-1">Dowiedz się więcej</Link>.
+        <Link to="/polityka-prywatnosci" className="underline hover:text-brand-300 ml-1">Dowiedz się więcej</Link>.
       </p>
       <button 
         onClick={handleAccept}
         // ✅ ZMIANA: Zastosowano style z przycisku "Nowy Projekt"
-        className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 text-sm"
+        className="px-6 py-2 bg-gradient-to-r from-brand-500 to-brand-600 text-white rounded-xl font-semibold shadow-lg hover:from-brand-600 hover:to-brand-700 transition-all duration-200 transform hover:scale-105 text-sm"
       >
         Rozumiem i akceptuję
       </button>

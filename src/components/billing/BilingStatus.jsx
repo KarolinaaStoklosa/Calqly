@@ -32,7 +32,7 @@ const BillingStatus = ({ variant = 'card' }) => {
         container: variant === 'card' ? "p-6 bg-white rounded-lg shadow-md border" : "px-4 py-2 text-sm",
         title: variant === 'card' ? "text-lg font-semibold text-gray-800 mb-2" : "font-semibold",
         text: variant === 'card' ? "text-gray-600" : "text-gray-600 dark:text-gray-300",
-        button: variant === 'card' ? "mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" : "text-blue-600 font-semibold mt-1"
+        button: variant === 'card' ? "mt-4 px-4 py-2 bg-brand-600 text-white rounded-md hover:bg-brand-700" : "text-brand-600 font-semibold mt-1"
     };
 
     switch (subscriptionStatus) {

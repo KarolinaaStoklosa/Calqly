@@ -59,7 +59,7 @@ const ArchivePage = ({ setActiveTab }) => { // Odbieramy funkcję do zmiany zak�
         {/* ✅ NOWOŚĆ: Przycisk do tworzenia nowego projektu */}
         <button 
           onClick={handleNewProject}
-          className="flex items-center gap-2 bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-2 bg-brand-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-brand-700 transition-colors"
         >
           <PlusCircle className="w-5 h-5" />
           Utwórz Nowy Projekt
@@ -75,9 +75,9 @@ const ArchivePage = ({ setActiveTab }) => { // Odbieramy funkcję do zmiany zak�
       ) : (
         <ul className="space-y-4">
           {projects.map(project => (
-            <li key={project.id} className="p-4 bg-white border rounded-lg shadow-sm flex items-center justify-between hover:border-blue-500 transition-colors">
+            <li key={project.id} className="p-4 bg-white border rounded-lg shadow-sm flex items-center justify-between hover:border-brand-500 transition-colors">
               <div>
-                <p className="font-semibold text-blue-600">{project.projectData?.projectName || 'Projekt bez nazwy'}</p>
+                <p className="font-semibold text-brand-600">{project.projectData?.projectName || 'Projekt bez nazwy'}</p>
                 <p className="text-sm text-gray-500">
                   Ostatnia zmiana: {project.lastSaved?.toDate().toLocaleString('pl-PL') || 'Brak daty'}
                 </p>

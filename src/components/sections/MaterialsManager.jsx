@@ -107,7 +107,7 @@ const MaterialsManager = () => {
   if (loading) {
       return (
           <div className="flex items-center justify-center p-12">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+              <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
               <span className="ml-3 text-gray-500">Ładowanie bazy materiałów...</span>
           </div>
       );
@@ -121,7 +121,7 @@ const MaterialsManager = () => {
                 <h2 className="text-base md:text-lg font-bold text-gray-900">Baza Materiałów</h2>
                 <p className="text-xs md:text-sm text-gray-500 hidden md:block">Zarządzaj cenami i asortymentem</p>
             </div>
-            <button onClick={handleAddItem} className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm font-medium text-sm">
+            <button onClick={handleAddItem} className="flex items-center gap-2 px-3 py-2 md:px-4 md:py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors shadow-sm font-medium text-sm">
                 <Plus size={18} />
                 <span>Dodaj <span className="hidden md:inline">pozycję</span></span>
             </button>
@@ -139,13 +139,13 @@ const MaterialsManager = () => {
                             onClick={() => { setActiveCategory(catKey); setSearchTerm(''); }}
                             className={`px-3 py-2 md:px-4 md:py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-left flex items-center justify-between whitespace-nowrap
                                 ${activeCategory === catKey 
-                                    ? 'bg-blue-600 text-white md:bg-white md:text-blue-700 md:shadow-sm md:ring-1 md:ring-gray-200' 
+                                    ? 'bg-brand-600 text-white md:bg-white md:text-brand-700 md:shadow-sm md:ring-1 md:ring-gray-200' 
                                     : 'text-gray-600 bg-gray-50 md:bg-transparent hover:bg-gray-100 hover:text-gray-900'
                                 }`}
                         >
                             <span>{CATEGORY_NAMES[catKey]}</span>
                             <span className={`ml-2 text-xs px-2 py-0.5 rounded-full hidden md:inline-block
-                                ${activeCategory === catKey ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'}`}>
+                                ${activeCategory === catKey ? 'bg-brand-100 text-brand-600' : 'bg-gray-100 text-gray-400'}`}>
                                 {materials[catKey]?.length || 0}
                             </span>
                         </button>
@@ -165,7 +165,7 @@ const MaterialsManager = () => {
                             placeholder="Szukaj po nazwie..." 
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm"
+                            className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none text-sm"
                         />
                     </div>
                 </div>
@@ -186,7 +186,7 @@ const MaterialsManager = () => {
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {filteredItems.map((item) => (
-                                        <tr key={`${item.nazwa}-${item.originalIndex}`} className="active:bg-gray-50 hover:bg-blue-50/50 transition-colors">
+                                        <tr key={`${item.nazwa}-${item.originalIndex}`} className="active:bg-gray-50 hover:bg-brand-50/50 transition-colors">
                                             <td className="px-3 py-3 md:px-4 text-center text-gray-400 font-mono text-xs">
                                                 {item.originalIndex + 1}
                                             </td>
@@ -195,14 +195,14 @@ const MaterialsManager = () => {
                                                 <div className="text-xs text-gray-400 sm:hidden mt-0.5">{item.opis}</div>
                                             </td>
                                             <td className="px-3 py-3 md:px-4 text-gray-500 hidden sm:table-cell">{item.opis || '-'}</td>
-                                            <td className="px-3 py-3 md:px-4 text-right font-mono font-medium text-blue-600 whitespace-nowrap">
+                                            <td className="px-3 py-3 md:px-4 text-right font-mono font-medium text-brand-600 whitespace-nowrap">
                                                 {typeof item.cena === 'number' ? item.cena.toFixed(2) : parseFloat(item.cena || 0).toFixed(2)} zł
                                             </td>
                                             <td className="px-2 py-3 md:px-4 text-right">
                                                 <div className="flex items-center justify-end gap-1">
                                                     <button 
                                                         onClick={() => handleEditItem(item, item.originalIndex)}
-                                                        className="p-2 text-gray-500 hover:text-blue-600 bg-gray-50 hover:bg-blue-100 rounded-lg transition-colors"
+                                                        className="p-2 text-gray-500 hover:text-brand-600 bg-gray-50 hover:bg-brand-100 rounded-lg transition-colors"
                                                     >
                                                         <Edit size={16} />
                                                     </button>
@@ -261,7 +261,7 @@ const MaterialsManager = () => {
                                 rows={2}
                                 value={editingItem.nazwa}
                                 onChange={(e) => setEditingItem({...editingItem, nazwa: e.target.value})}
-                                className="w-full px-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-base"
+                                className="w-full px-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-all text-base"
                                 placeholder="Wpisz nazwę..."
                                 disabled={isSaving}
                             />
@@ -282,7 +282,7 @@ const MaterialsManager = () => {
                                             setEditingItem({...editingItem, cena: val});
                                         }
                                     }}
-                                    className="w-full px-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none font-mono text-lg font-medium"
+                                    className="w-full px-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none font-mono text-lg font-medium"
                                     disabled={isSaving}
                                 />
                             </div>
@@ -292,7 +292,7 @@ const MaterialsManager = () => {
                                     type="text" 
                                     value={editingItem.opis || ''}
                                     onChange={(e) => setEditingItem({...editingItem, opis: e.target.value})}
-                                    className="w-full px-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-base"
+                                    className="w-full px-3 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none text-base"
                                     placeholder="Opcjonalne"
                                     disabled={isSaving}
                                 />
@@ -301,16 +301,16 @@ const MaterialsManager = () => {
 
                         {/* Opcje specjalne dla Okleiny */}
                         {activeCategory === 'okleina' && (
-                            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                                <label className="block text-xs font-bold text-blue-700 uppercase tracking-wide mb-3">Typ pozycji</label>
+                            <div className="bg-brand-50 p-4 rounded-xl border border-brand-100">
+                                <label className="block text-xs font-bold text-brand-700 uppercase tracking-wide mb-3">Typ pozycji</label>
                                 <div className="space-y-3">
-                                    <label className="flex items-center gap-3 p-2 bg-white rounded-lg border border-blue-100 shadow-sm cursor-pointer">
+                                    <label className="flex items-center gap-3 p-2 bg-white rounded-lg border border-brand-100 shadow-sm cursor-pointer">
                                         <input 
                                             type="radio" 
                                             name="kategoria"
                                             checked={editingItem.kategoria !== 'usluga'}
                                             onChange={() => setEditingItem({...editingItem, kategoria: 'material'})}
-                                            className="w-5 h-5 text-blue-600 focus:ring-blue-500"
+                                            className="w-5 h-5 text-brand-600 focus:ring-brand-500"
                                             disabled={isSaving}
                                         />
                                         <div>
@@ -318,13 +318,13 @@ const MaterialsManager = () => {
                                             <span className="block text-xs text-gray-500">System doliczy koszty usług.</span>
                                         </div>
                                     </label>
-                                    <label className="flex items-center gap-3 p-2 bg-white rounded-lg border border-blue-100 shadow-sm cursor-pointer">
+                                    <label className="flex items-center gap-3 p-2 bg-white rounded-lg border border-brand-100 shadow-sm cursor-pointer">
                                         <input 
                                             type="radio" 
                                             name="kategoria"
                                             checked={editingItem.kategoria === 'usluga'}
                                             onChange={() => setEditingItem({...editingItem, kategoria: 'usluga'})}
-                                            className="w-5 h-5 text-blue-600 focus:ring-blue-500"
+                                            className="w-5 h-5 text-brand-600 focus:ring-brand-500"
                                             disabled={isSaving}
                                         />
                                         <div>
@@ -350,7 +350,7 @@ const MaterialsManager = () => {
                         <button 
                             onClick={handleSaveItem}
                             disabled={isSaving} 
-                            className="flex-[2] px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow-md transition-colors flex items-center justify-center gap-2"
+                            className="flex-[2] px-4 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-medium shadow-md transition-colors flex items-center justify-center gap-2"
                         >
                             {isSaving && <Loader2 className="w-5 h-5 animate-spin" />}
                             {isSaving ? 'Zapisywanie...' : 'Zapisz'}

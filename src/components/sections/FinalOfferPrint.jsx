@@ -21,7 +21,8 @@ const FinalOfferPrint = ({ offerData, onClose }) => {
       <div style={{ background: '#1f2937', color: 'white', padding: '15px 25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
         <h2 style={{ margin: 0, fontSize: '18px' }}>📄 Podgląd Oferty</h2>
         <div style={{ display: 'flex', gap: '15px' }}>
-          <button onClick={handlePrint} style={{ padding: '10px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}><Printer size={18} /> DRUKUJ / ZAPISZ PDF</button>
+          {/* ZMIANA: Button Niebieski -> Pomarańczowy (#ff3d00) */}
+          <button onClick={handlePrint} style={{ padding: '10px 20px', background: '#ff3d00', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}><Printer size={18} /> DRUKUJ / ZAPISZ PDF</button>
           <button onClick={onClose} style={{ padding: '10px 20px', background: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}><X size={18} /> Zamknij</button>
         </div>
       </div>
@@ -56,14 +57,17 @@ const PrintableContent = React.forwardRef(({ companyData, clientData, totals, ac
   const formatSurface = (surface = 0) => `${surface.toFixed(2).replace('.', ',')} m²`;
   const { grossTotal, netTotal } = totals || {};
   const cardStyle = { background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '6mm', pageBreakInside: 'avoid' };
-  const sectionHeadingStyle = { fontSize: '16px', fontWeight: 'bold', color: '#2563eb', margin: '0 0 5mm 0' };
+  
+  // ZMIANA: Niebieski (#2563eb) -> Pomarańczowy (#ff3d00)
+  const sectionHeadingStyle = { fontSize: '16px', fontWeight: 'bold', color: '#ff3d00', margin: '0 0 5mm 0' };
 
   return (
     <div ref={ref} style={{ fontFamily: 'Arial, sans-serif', fontSize: '12px', lineHeight: '1.5', color: '#333', background: 'white' }}>
       {/* --- STRONA 1 --- */}
       <div style={{ padding: '20mm', boxSizing: 'border-box', minHeight: '297mm', display: 'flex', flexDirection: 'column' }}>
         <div style={{ flex: '1 0 auto' }}>
-          <div style={{ borderTop: '4px solid #2563eb', paddingTop: '10mm', marginBottom: '10mm' }}>
+          {/* ZMIANA: Niebieski border -> Pomarańczowy */}
+          <div style={{ borderTop: '4px solid #ff3d00', paddingTop: '10mm', marginBottom: '10mm' }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr 1fr', gap: '10mm', alignItems: 'center' }}>
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '35mm' }}>
                     {companyData?.logo ? (<img src={companyData.logo} alt="Logo" style={{ maxHeight: '100%', maxWidth: '100%' }} />) : (<div style={{ fontSize: '12px', color: '#666' }}>LOGO FIRMY</div>)}
@@ -74,7 +78,8 @@ const PrintableContent = React.forwardRef(({ companyData, clientData, totals, ac
                     <p style={{ margin: '5mm 0 0 0', fontSize: '11px', color: '#6b7280' }}>{companyData?.website} | {companyData?.email} | {companyData?.phone}</p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                    <div style={{ background: '#2563eb', color: 'white', padding: '8mm', textAlign: 'center', borderRadius: '8px' }}>
+                    {/* ZMIANA: Tło boxu oferty na pomarańczowe */}
+                    <div style={{ background: '#ff3d00', color: 'white', padding: '8mm', textAlign: 'center', borderRadius: '8px' }}>
                     <div style={{ fontSize: '16px', fontWeight: 'bold' }}>OFERTA {offerNumber}</div>
                     <div style={{ fontSize: '14px', marginTop: '2mm' }}>{new Date().toLocaleDateString('pl-PL')}</div>
                     </div>
@@ -83,7 +88,8 @@ const PrintableContent = React.forwardRef(({ companyData, clientData, totals, ac
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8mm', background: '#f8fafc', padding: '8mm', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
             <div>
-                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#2563eb', borderBottom: '1px solid #ddd', paddingBottom: '2mm', margin: '0 0 4mm 0' }}>DANE OFERTY</h3>
+                {/* ZMIANA: Nagłówki kolumn na pomarańczowo */}
+                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#ff3d00', borderBottom: '1px solid #ddd', paddingBottom: '2mm', margin: '0 0 4mm 0' }}>DANE OFERTY</h3>
                 <div style={{ fontSize: '12px', lineHeight: '1.8' }}>
                     <div><strong>Nr:</strong> {offerNumber}</div>
                     <div><strong>Data:</strong> {new Date().toLocaleDateString('pl-PL')}</div>
@@ -92,7 +98,7 @@ const PrintableContent = React.forwardRef(({ companyData, clientData, totals, ac
                 </div>
             </div>
             <div>
-                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#2563eb', borderBottom: '1px solid #ddd', paddingBottom: '2mm', margin: '0 0 4mm 0' }}>ZAMAWIAJĄCY</h3>
+                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#ff3d00', borderBottom: '1px solid #ddd', paddingBottom: '2mm', margin: '0 0 4mm 0' }}>ZAMAWIAJĄCY</h3>
                 <div style={{ fontSize: '12px', lineHeight: '1.8' }}>
                     <div><strong>Klient:</strong> {clientData?.clientName || '—'}</div>
                     <div><strong>Telefon:</strong> {clientData?.clientPhone || '—'}</div>
@@ -101,7 +107,7 @@ const PrintableContent = React.forwardRef(({ companyData, clientData, totals, ac
                 </div>
             </div>
             <div>
-                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#2563eb', borderBottom: '1px solid #ddd', paddingBottom: '2mm', margin: '0 0 4mm 0' }}>DANE REALIZACJI</h3>
+                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#ff3d00', borderBottom: '1px solid #ddd', paddingBottom: '2mm', margin: '0 0 4mm 0' }}>DANE REALIZACJI</h3>
                 <div style={{ fontSize: '12px', lineHeight: '1.8' }}>
                     <div><strong>Gwarancja:</strong> {companyData?.warranty || '—'}</div>
                     <div><strong>Czas realizacji:</strong> {companyData?.deliveryTime || '—'}</div>
@@ -121,7 +127,8 @@ const PrintableContent = React.forwardRef(({ companyData, clientData, totals, ac
             display: 'flex', 
             flexDirection: 'column' 
           }}>
-            <div style={{ background: '#2563eb', color: 'white', padding: '3mm', fontSize: '13px', fontWeight: 'bold', textAlign: 'center' }}>
+            {/* ZMIANA: Pasek nad zdjęciem na pomarańczowo */}
+            <div style={{ background: '#ff3d00', color: 'white', padding: '3mm', fontSize: '13px', fontWeight: 'bold', textAlign: 'center' }}>
             </div>
             <img 
               src={companyData.backgroundImage} 
@@ -146,7 +153,6 @@ const PrintableContent = React.forwardRef(({ companyData, clientData, totals, ac
               <SummaryItem label="ILOŚĆ SZAFEK" value={`${summaryMetrics?.iloscSzafek || 0} szt`} />
               <SummaryItem label="KORPUSY + PÓŁKI" value={formatSurface(summaryMetrics?.powierzchniaKorpusyPolki)} />
               <SummaryItem label="FRONTY" value={formatSurface(summaryMetrics?.powierzchniaFronty)} />
-              {/* ✅ ZMIANA: Dodajemy nowe pole do podsumowania */}
               <SummaryItem label="WIDOCZNY BOK" value={formatSurface(summaryMetrics?.powierzchniaBokowWidocznych)} />
               <SummaryItem label="BLATY (PRODUKTY)" value={`${summaryMetrics?.iloscBlatowProduktow || 0} szt`} />
               {(activeSections || [])
@@ -167,9 +173,11 @@ const PrintableContent = React.forwardRef(({ companyData, clientData, totals, ac
           <div style={{ ...cardStyle, marginTop: '6mm' }}>
             <h2 style={sectionHeadingStyle}>PODSUMOWANIE FINANSOWE</h2>
             <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
-              <div style={{ textAlign: 'center' }}><div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '2mm' }}>CENA NETTO</div><div style={{ fontSize: '22px', fontWeight: 'bold', color: '#1e3a8a' }}>{formatPrice(netTotal)}</div></div>
+              {/* ZMIANA: Cena Netto neutralna */}
+              <div style={{ textAlign: 'center' }}><div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '2mm' }}>CENA NETTO</div><div style={{ fontSize: '22px', fontWeight: 'bold', color: '#374151' }}>{formatPrice(netTotal)}</div></div>
               <div style={{ borderLeft: '1px solid #e2e8f0', height: '15mm' }}></div>
-              <div style={{ textAlign: 'center' }}><div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '2mm' }}>CENA BRUTTO</div><div style={{ fontSize: '26px', fontWeight: 'bold', color: '#be123c' }}>{formatPrice(grossTotal)}</div></div>
+              {/* ZMIANA: Cena Brutto Pomarańczowa */}
+              <div style={{ textAlign: 'center' }}><div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '2mm' }}>CENA BRUTTO</div><div style={{ fontSize: '26px', fontWeight: 'bold', color: '#ff3d00' }}>{formatPrice(grossTotal)}</div></div>
             </div>
           </div>
           <div style={{ paddingTop: '15mm', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10mm' }}>
@@ -196,18 +204,17 @@ const PrintableContent = React.forwardRef(({ companyData, clientData, totals, ac
                             <div style={{ border: '1px solid #e2e8f0', borderTop: 'none', padding: '4mm' }}>
                                 {section.key === 'szafki' 
                                     ? (szafkiMaterialSummary || []).map(([material, surface], idx) => (
-                                        <div key={idx} style={{ padding: '3mm 4mm', borderBottom: '1px solid #f8fafc', display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                                            <span>{idx + 1}. {material}</span>
-                                            <span style={{ fontWeight: 'bold' }}>{formatSurface(surface)}</span>
-                                        </div>
+                                            <div key={idx} style={{ padding: '3mm 4mm', borderBottom: '1px solid #f8fafc', display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                                                <span>{idx + 1}. {material}</span>
+                                                <span style={{ fontWeight: 'bold' }}>{formatSurface(surface)}</span>
+                                            </div>
                                       ))
-                                // ✅ ZMIANA: Nowa logika wyświetlania dla Widocznego Boku
                                 : section.key === 'widocznyBok'
                                     ? (widocznyBokMaterialSummary || []).map(([material, surface], idx) => (
-                                        <div key={idx} style={{ padding: '3mm 4mm', borderBottom: '1px solid #f8fafc', display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
-                                            <span>{idx + 1}. {material}</span>
-                                            <span style={{ fontWeight: 'bold' }}>{formatSurface(surface)}</span>
-                                        </div>
+                                            <div key={idx} style={{ padding: '3mm 4mm', borderBottom: '1px solid #f8fafc', display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                                                <span>{idx + 1}. {material}</span>
+                                                <span style={{ fontWeight: 'bold' }}>{formatSurface(surface)}</span>
+                                            </div>
                                       ))
                                 : (section.data || []).map((item, idx) => (
                                     <div key={idx} style={{ padding: '3mm 4mm', borderBottom: '1px solid #f8fafc', display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
@@ -230,7 +237,8 @@ const PrintableContent = React.forwardRef(({ companyData, clientData, totals, ac
 const SummaryItem = ({ label, value }) => (
   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '3mm' }}>
     <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#374151' }}>{label}</div>
-    <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#2563eb' }}>{value}</div>
+    {/* ZMIANA: Wartość na pomarańczowo */}
+    <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#ff3d00' }}>{value}</div>
   </div>
 );
 
