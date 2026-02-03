@@ -1,173 +1,109 @@
 import React from 'react';
 import { 
-  Calculator, Archive, Book,
-  Package, Eye, Move, Grip, RotateCcw, ArrowUp, 
-  Package2, Square, Wrench, Plus, LifeBuoy, 
-  FileInput, PieChart, X,
-  ChevronRight, Sparkles, FileText, Shield
+  Package, Eye, Package2, FileInput, 
+  ChevronRight, X, LogOut, FileText
 } from 'lucide-react';
 import { useProject } from '../../context/ProjectContext';
 import { Link } from 'react-router-dom';
 
 const Navigation = ({ activeTab, setActiveTab, isOpen, closeSidebar }) => {
 
-  const { resetProject } = useProject();
   const appVersion = "1.0.0";
   
   const menuItems = [
     { id: 'companySettings', label: 'Dane Firmy', icon: FileInput, category: 'project' },
-    { id: 'projectSetup', label: 'Dane projektu', icon: FileInput, category: 'project' },
+    { id: 'projectSetup', label: 'Dane projektu', icon: FileText, category: 'project' },
     
     { id: 'separator-0', type: 'separator', label: 'KALKULACJA' },
     
     { id: 'szafki', label: 'Szafki/Korpusy', icon: Package, category: 'calculation' },
     { id: 'szuflady', label: 'Szuflady', icon: Package2, category: 'calculation' },
     { id: 'widocznyBok', label: 'Widoczny Bok', icon: Eye, category: 'calculation' },
-    { id: 'drzwiPrzesuwne', label: 'Drzwi Przesuwne', icon: Move, category: 'calculation' },
-    { id: 'uchwyty', label: 'Uchwyty', icon: Grip, category: 'calculation' },
-    { id: 'zawiasy', label: 'Zawiasy', icon: RotateCcw, category: 'calculation' },
-    { id: 'podnosniki', label: 'Podnośniki', icon: ArrowUp, category: 'calculation' },
-    { id: 'blaty', label: 'Blaty', icon: Square, category: 'calculation' },
-    { id: 'akcesoria', label: 'Akcesoria', icon: Wrench, category: 'calculation' },
-    
-    { id: 'separator-1', type: 'separator', label: 'ANALIZY' },
-    
-    { id: 'kalkulacja', label: 'Pozostałe Koszty', icon: Calculator, category: 'financial' },
-    { id: 'podsumowanie', label: 'Podsumowanie', icon: PieChart, category: 'summary' },
-    
-    { id: 'separator-2', type: 'separator', label: 'ZARZĄDZANIE' },
-    
-    { id: 'archive', label: 'Archiwum', icon: Archive, category: 'storage' },
-    { id: 'materials', label: 'Zarządzaj Materiałami', icon: Book, category: 'system' },
+    { id: 'drzwiPrzesuwne', label: 'Drzwi Przesuwne', icon: Package, category: 'calculation' },
+    { id: 'uchwyty', label: 'Uchwyty', icon: Package, category: 'calculation' },
+    { id: 'zawiasy', label: 'Zawiasy', icon: Package, category: 'calculation' },
+    { id: 'podnosniki', label: 'Podnośniki', icon: Package, category: 'calculation' },
+    { id: 'blaty', label: 'Blaty i Usługi', icon: Package, category: 'calculation' },
+    { id: 'akcesoria', label: 'Akcesoria', icon: Package, category: 'calculation' },
   ];
-
-  const handleNewProject = () => {
-    if (confirm('🆕 Rozpocząć nowy projekt? Obecny projekt roboczy zostanie wyczyszczony.')) {
-      resetProject();
-      setActiveTab('projectSetup');
-      if (isOpen) closeSidebar();
-    }
-  };
 
   return (
     <>
+      {/* 1. BACKDROP (Tylko Mobile) - Ciemne tło po otwarciu menu */}
       {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-40 lg:hidden backdrop-blur-sm"
+        <div 
           onClick={closeSidebar}
-          aria-hidden="true"
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity lg:hidden"
         />
       )}
 
-      <nav className={`
-        fixed lg:static inset-y-0 left-0 z-50 flex flex-col w-72 bg-white/95 backdrop-blur-xl border-r
-        transform transition-all duration-300 ease-out shadow-xl lg:shadow-none
-        ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}>
-        
-        {/* Header Mobilny */}
-        <div className="lg:hidden flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-semibold">Menu</h2>
-          <button onClick={closeSidebar} className="p-2 rounded-lg hover:bg-gray-100">
-            <X className="w-5 h-5 text-gray-500" />
-          </button>
+      {/* 2. SIDEBAR */}
+      <aside 
+        className={`
+          fixed top-0 left-0 z-50 h-full w-[280px] bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-2xl lg:shadow-none
+          transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-0
+          ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        `}
+      >
+        {/* Nagłówek Menu na Mobile */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-100 lg:hidden">
+            <span className="font-bold text-lg text-gray-800">Menu</span>
+            <button onClick={closeSidebar} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
+                <X className="w-5 h-5 text-gray-600" />
+            </button>
         </div>
 
-        {/* Przycisk Nowy Projekt - pozostaje przypięty na górze dla szybkiego dostępu */}
-        <div className="p-4">
-          <button 
-            onClick={handleNewProject}
-            className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-brand-600 to-purple-600 text-white rounded-xl font-semibold shadow-lg hover:from-brand-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            <span>Nowy projekt</span>
-            <Sparkles className="w-4 h-4 ml-2 opacity-75" />
-          </button>
-        </div>
-
-        {/* GŁÓWNY KONTENER SCROLLOWANIA 
-            Zawiera teraz zarówno listę menu, jak i sekcję Informacje/Stopkę.
-        */}
-        <div className="flex-grow px-4 overflow-y-auto pb-8"> {/* Dodano pb-8 dla oddechu na dole */}
-          
-          {/* Lista Menu */}
-          <div className="space-y-1 pb-4">
-            {menuItems.map((item) => {
-              if (item.type === 'separator') {
-                return (
-                  <div key={item.id} className="pt-4 pb-2">
-                    <div className="px-3 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                        {item.label}
-                    </div>
-                  </div>
-                );
-              }
-
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
-
+        {/* Lista Elementów - Scrollowana */}
+        <div className="h-[calc(100%-60px)] overflow-y-auto py-4 px-3 space-y-1 custom-scrollbar">
+          {menuItems.map((item, index) => {
+            if (item.type === 'separator') {
               return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setActiveTab(item.id);
-                    if (isOpen) closeSidebar();
-                  }}
-                  className={`
-                    w-full flex items-center px-4 py-2.5 text-sm font-medium rounded-lg
-                    transition-all duration-200 text-left group
-                    ${isActive 
-                      ? 'bg-brand-100 text-brand-700' 
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                    }
-                  `}
-                >
-                  <Icon className={`w-5 h-5 mr-3 flex-shrink-0 ${isActive ? 'text-brand-600' : 'text-gray-400 group-hover:text-gray-600'}`} />
-                  <span className="flex-1 truncate">{item.label}</span>
-                  {isActive && <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />}
-                </button>
+                <div key={item.id} className="mt-6 mb-2 px-3 text-[11px] font-black tracking-widest text-gray-400 uppercase">
+                  {item.label}
+                </div>
               );
-            })}
-          </div>
+            }
 
-          {/* SEKCJA INFORMACJE I STOPKA 
-              Przeniesiona tutaj, aby scrollować się razem z resztą.
-              Zmieniono p-4 na py-4, ponieważ kontener nadrzędny ma już px-4.
-          */}
-          <div className="border-t py-4 space-y-4 mt-2">
-            <div className="px-3 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                INFORMACJE
-            </div>
-            <div className="space-y-1 text-sm">
-              <Link to="/regulamin" className="flex items-center p-2 rounded-lg text-gray-600 hover:bg-gray-100">
-                <FileText className="w-4 h-4 mr-3 text-gray-400" /> Regulamin
-              </Link>
-              <Link to="/polityka-prywatnosci" className="flex items-center p-2 rounded-lg text-gray-600 hover:bg-gray-100">
-                <Shield className="w-4 h-4 mr-3 text-gray-400" /> Polityka Prywatności
-              </Link>
-               <Link to="/disclaimer" className="flex items-center p-2 rounded-lg text-gray-600 hover:bg-gray-100">
-                <LifeBuoy className="w-4 h-4 mr-3 text-gray-400" /> Zastrzeżenia Prawne
-              </Link>
-            </div>
-            
-            {/* Stopka firmy */}
-            <div className="text-xs text-gray-500 space-y-2 pt-2 border-t mt-4">
-              <p className="font-bold text-gray-700 text-sm">QALQLY APP</p>
-              <p className="text-[10px] uppercase tracking-wider text-blue-600 font-semibold">
-                by WOODLY GROUP
-              </p>
-              <div className="opacity-60 text-[10px] mt-2">
-                <p>Operator: TREEO ART</p>
-                <p>NIP:8681987513</p> {/* np. 8682002241 */}
-                <p>Adres: ul. Limanowska 28A, 32-720 Nowy Wiśnicz</p>
-                 <p>Kontakt: <a href="mailto:b.stoklosa@woodlygroup.pl" className="text-blue-600 hover:underline">b.stoklosa@woodlygroup.pl</a></p>
-              </div>
-              <p className="pt-2">&copy; {new Date().getFullYear()} Qalqly. Wersja {appVersion}</p>
-            </div>
-          </div>
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
 
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  if (window.innerWidth < 1024) closeSidebar();
+                }}
+                className={`
+                  relative group flex items-center w-full px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200
+                  ${isActive 
+                    ? 'bg-brand-50 text-brand-700 shadow-sm ring-1 ring-brand-200' 
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }
+                `}
+              >
+                {isActive && (
+                    <div className="absolute left-0 h-8 w-1 bg-brand-500 rounded-r-full" />
+                )}
+                
+                <Icon className={`w-5 h-5 mr-3 transition-colors ${isActive ? 'text-brand-500' : 'text-gray-400 group-hover:text-gray-600'}`} />
+                
+                <span className="flex-1 text-left">{item.label}</span>
+                
+                {isActive && <ChevronRight className="w-4 h-4 text-brand-400" />}
+              </button>
+            );
+          })}
         </div>
-      </nav>
+
+        {/* Stopka Nawigacji */}
+        <div className="absolute bottom-0 w-full p-4 border-t border-gray-100 bg-gray-50/50 dark:border-gray-700 dark:bg-gray-800">
+            <div className="flex flex-col gap-2 text-[10px] text-gray-400 text-center">
+                <Link to="/polityka-prywatnosci" className="hover:text-brand-500 transition-colors">Polityka Prywatności</Link>
+                <span>v{appVersion} • Qalqly App</span>
+            </div>
+        </div>
+      </aside>
     </>
   );
 };

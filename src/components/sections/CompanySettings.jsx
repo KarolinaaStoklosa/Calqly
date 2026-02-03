@@ -70,7 +70,7 @@ const CompanySettings = () => {
             {/* ✅ 4. Przełącznik trybu edycji / zapisu */}
             <div className="flex gap-2">
                 {!isEditMode ? (
-                  <button onClick={() => setIsEditMode(true)} className="flex items-center gap-2 bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
+                  <button onClick={() => setIsEditMode(true)} className="flex items-center gap-2 bg-brand-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-brand-700 transition-colors">
                     <Edit size={16} /> Edytuj
                   </button>
                 ) : (
@@ -149,14 +149,14 @@ const CompanySettings = () => {
 // --- Komponenty pomocnicze (dodano `disabled`) ---
 const Section = ({ title, icon: Icon, children }) => (
     <div className="p-6 border rounded-lg">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center"><Icon className="w-5 h-5 mr-2 text-blue-600" />{title}</h2>
+        <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center"><Icon className="w-5 h-5 mr-2 text-brand-600" />{title}</h2>
         {children}
     </div>
 );
 const Input = ({ label, name, register, placeholder, type = 'text', disabled }) => (
     <div>
         <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-        <input id={name} type={type} placeholder={placeholder} {...register(name)} disabled={disabled} className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed" />
+        <input id={name} type={type} placeholder={placeholder} {...register(name)} disabled={disabled} className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-brand-500 disabled:bg-gray-100 disabled:cursor-not-allowed" />
     </div>
 );
 const FileInput = ({ label, name, onChange, preview, loading, disabled }) => (
@@ -166,7 +166,7 @@ const FileInput = ({ label, name, onChange, preview, loading, disabled }) => (
             <div className="w-16 h-16 border rounded-md bg-gray-50 flex items-center justify-center text-gray-400 relative shrink-0">
               {loading ? ( <Loader2 className="w-6 h-6 animate-spin" /> ) : ( preview ? <img src={preview} alt="Podgląd" className="w-full h-full object-contain" /> : "Podgląd" )}
             </div>
-            <input type="file" accept="image/*" onChange={(e) => onChange(e, name)} disabled={disabled || loading} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed" />
+            <input type="file" accept="image/*" onChange={(e) => onChange(e, name)} disabled={disabled || loading} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 disabled:opacity-50 disabled:cursor-not-allowed" />
         </div>
     </div>
 );
@@ -184,7 +184,7 @@ const EditableTextList = ({ label, items, onUpdate, disabled }) => {
                         <button type="button" onClick={() => handleRemove(item.id)} disabled={disabled} className="p-2 text-red-500 hover:bg-red-100 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"><Trash2 className="w-4 h-4" /></button>
                     </div>
                 ))}
-                <button type="button" onClick={handleAdd} disabled={disabled} className="w-full flex items-center justify-center gap-2 p-2 border-2 border-dashed rounded-md text-gray-500 hover:border-blue-500 hover:text-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                <button type="button" onClick={handleAdd} disabled={disabled} className="w-full flex items-center justify-center gap-2 p-2 border-2 border-dashed rounded-md text-gray-500 hover:border-brand-500 hover:text-brand-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                     <Plus className="w-4 h-4" /> Dodaj punkt
                 </button>
             </div>

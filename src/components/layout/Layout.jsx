@@ -10,7 +10,6 @@ const Layout = ({ children }) => {
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
-    // Tutaj można dodać logikę zapisywania preferencji
   };
 
   const toggleSidebar = () => {
@@ -22,14 +21,15 @@ const Layout = ({ children }) => {
   };
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${darkMode ? 'dark' : ''}`}>
+    <div className={`min-h-screen bg-gray-50 flex flex-col ${darkMode ? 'dark' : ''}`}>
       <Header 
         darkMode={darkMode}
         toggleDarkMode={toggleDarkMode}
         toggleSidebar={toggleSidebar}
       />
       
-      <div className="flex">
+      <div className="flex flex-1 relative overflow-hidden">
+        {/* Nawigacja z obsługą mobilną */}
         <Navigation 
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -37,13 +37,16 @@ const Layout = ({ children }) => {
           closeSidebar={closeSidebar}
         />
         
-        <main className="flex-1 p-6 lg:p-8 overflow-auto">
-          <div className="max-w-7xl mx-auto">
+        {/* Główna treść - Poprawione paddingi dla mobile */}
+        <main className="flex-1 w-full overflow-y-auto overflow-x-hidden bg-gray-50 dark:bg-gray-900 scroll-smooth">
+          <div className="max-w-7xl mx-auto px-3 py-4 md:px-6 md:py-8 lg:px-8">
              <ExpirationNotifier />
-            {children({activeTab, setActiveTab})}
+             {/* Kontener na treść */}
+             <div className="animate-in fade-in duration-300">
+                {children({activeTab, setActiveTab})}
+             </div>
           </div>
         </main>
-       
       </div>
     </div>
   );
