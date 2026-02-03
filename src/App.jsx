@@ -39,9 +39,9 @@ const WelcomeScreen = ({ setActiveTab }) => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-8 text-center flex flex-col items-center justify-center min-h-[calc(100vh-8rem)]">
-      <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+    <div className="bg-gradient-to-br from-slate-50 via-brand-50 to-indigo-50 p-8 text-center flex flex-col items-center justify-center min-h-[calc(100vh-8rem)]">
+      <div className="w-24 h-24 bg-gradient-to-br from-brand-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
+        <div className="w-16 h-16 bg-gradient-to-br from-brand-500 to-purple-500 rounded-full flex items-center justify-center">
           <Sparkles className="w-8 h-8 text-white" />
         </div>
       </div>
@@ -52,14 +52,14 @@ const WelcomeScreen = ({ setActiveTab }) => {
       </p>
       <button 
         onClick={handleCreateFirstProject}
-        className="mt-8 flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
+        className="mt-8 flex items-center justify-center px-8 py-4 bg-gradient-to-r from-brand-600 to-purple-600 text-white rounded-xl font-semibold shadow-lg hover:from-brand-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
       >
         <FilePlus className="w-5 h-5 mr-2" />
         Utwórz Projekt
       </button>
       <button 
         onClick={() => setActiveTab('archive')}
-        className="mt-8 flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-semibold shadow-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
+        className="mt-8 flex items-center justify-center px-8 py-4 bg-gradient-to-r from-brand-600 to-purple-600 text-white rounded-xl font-semibold shadow-lg hover:from-brand-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
       >
         <FilePlus className="w-5 h-5 mr-2" />
         Otwórz istniejący projekt

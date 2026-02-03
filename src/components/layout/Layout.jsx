@@ -4,12 +4,16 @@ import Navigation from './Navigation';
 import ExpirationNotifier from '../billing/ExpirationNotifier';
 
 const Layout = ({ children }) => {
-  const [darkMode, setDarkMode] = useState(false);
+  // Remove darkMode state or set initial state to false and never change it
+  // const [darkMode, setDarkMode] = useState(false); 
+  
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('calculation');
 
+  // Remove or disable toggle logic
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
+    // setDarkMode(!darkMode); 
+    // Logic removed to enforce light mode
   };
 
   const toggleSidebar = () => {
@@ -21,9 +25,11 @@ const Layout = ({ children }) => {
   };
 
   return (
-    <div className={`min-h-screen bg-gray-50 flex flex-col ${darkMode ? 'dark' : ''}`}>
+    // FORCE LIGHT MODE: Removed `${darkMode ? 'dark' : ''}`
+    // Ensure the outer div always has a light background like bg-gray-50
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header 
-        darkMode={darkMode}
+        darkMode={false} // Pass false explicitly
         toggleDarkMode={toggleDarkMode}
         toggleSidebar={toggleSidebar}
       />
@@ -36,7 +42,7 @@ const Layout = ({ children }) => {
           closeSidebar={closeSidebar}
         />
         
-        {/* Zmieniono padding: p-3 na mobile, p-8 na desktopie */}
+        {/* Adjusted padding for mobile (p-3) and desktop (p-8) */}
         <main className="flex-1 w-full overflow-y-auto bg-gray-50 p-3 md:p-6 lg:p-8 pb-20 md:pb-8">
           <div className="max-w-7xl mx-auto">
              <ExpirationNotifier />
