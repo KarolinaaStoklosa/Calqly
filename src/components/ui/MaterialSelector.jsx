@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Search, ChevronDown, X, Check } from 'lucide-react';
-import { searchInDropdown } from '../../data/dropdowns';
+import { useMaterials } from '../../context/MaterialContext'; // ✅ Używamy kontekstu
+import { DROPDOWN_DATA } from '../../data/dropdowns'; // Dane statyczne jako backup
 
 const MaterialSelector = ({ 
   category,        // np. 'plytyMeblowe', 'okleina', 'fronty'
@@ -8,123 +9,125 @@ const MaterialSelector = ({
   onChange,        // Funkcja zmieniająca stan
   placeholder = "Wybierz...", 
   disabled = false, 
-  filterFn,        // Opcjonalna funkcja filtrująca (np. dla okleiny: ukryj usługi)
+  filterFn,        // Opcjonalna funkcja filtrująca
   className = ""   
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [options, setOptions] = useState([]);
   const wrapperRef = useRef(null);
+  
+  // ✅ 1. Pobieramy aktualne dane z bazy (te które edytujesz w MaterialsManager)
+  const { materials } = useMaterials();
 
-  // 1. Ładowanie i filtrowanie danych z DROPDOWN_DATA
-  useEffect(() => {
-    // Pobieramy dane z pliku dropdowns.js na podstawie kategorii i wpisanego tekstu
-    let results = searchInDropdown(category, searchTerm);
+  // ✅ 2. Łączymy dane: Baza Użytkownika ma priorytet nad plikiem statycznym
+  // Używamy useMemo dla wydajności, żeby nie liczyć tego przy każdym kliknięciu
+  const allOptions = useMemo(() => {
+    // a) Pobierz listę z kontekstu (to co widać w MaterialsManager)
+    const userItems = materials[category] || [];
+    
+    // b) Pobierz listę statyczną (jako fallback, jeśli kontekst jeszcze się ładuje)
+    const staticItems = DROPDOWN_DATA[category] || [];
 
-    // Jeśli przekazano dodatkowy filtr (np. ukrywanie usług w okleinie), stosujemy go
-    if (filterFn) {
-      results = results.filter(filterFn);
+    // Jeśli kontekst ma dane, używamy ich (bo są nowsze/edytowane). 
+    // Jeśli nie (np. błąd ładowania), bierzemy statyczne.
+    // Uwaga: MaterialsContext w Twoim kodzie już łączy te dane przy starcie, 
+    // więc `userItems` powinno zawierać WSZYSTKO (stare + nowe).
+    let items = userItems.length > 0 ? userItems : staticItems;
+
+    // c) Filtrowanie po wpisanej frazie
+    if (searchTerm) {
+      const lowerTerm = searchTerm.toLowerCase();
+      items = items.filter(item => 
+        (item.nazwa && item.nazwa.toLowerCase().includes(lowerTerm)) ||
+        (item.opis && item.opis.toLowerCase().includes(lowerTerm))
+      );
     }
 
-    setOptions(results);
-  }, [category, searchTerm, filterFn]);
+    // d) Opcjonalne dodatkowe filtrowanie (np. ukrywanie usług)
+    if (filterFn) {
+      items = items.filter(filterFn);
+    }
 
-  // 2. Zamykanie po kliknięciu poza komponentem
+    return items;
+  }, [materials, category, searchTerm, filterFn]);
+
+  // Zamknięcie po kliknięciu poza
   useEffect(() => {
-    function handleClickOutside(event) {
+    const handleClickOutside = (event) => {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
         setIsOpen(false);
-        // Jeśli zamknęliśmy bez wyboru, czyścimy wyszukiwanie
-        if (!isOpen) setSearchTerm(''); 
       }
-    }
+    };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [wrapperRef, isOpen]);
+  }, []);
 
-  // 3. Obsługa wyboru
+  // Wybór elementu
   const handleSelect = (nazwa) => {
     onChange(nazwa);
     setIsOpen(false);
-    setSearchTerm(''); // Czyścimy pole wyszukiwania po wyborze
-  };
-
-  // 4. Czyszczenie (X)
-  const handleClear = (e) => {
-    e.stopPropagation();
-    onChange('');
     setSearchTerm('');
   };
 
   return (
-    <div className={`relative w-full ${disabled ? 'opacity-60 pointer-events-none' : ''} ${className}`} ref={wrapperRef}>
-      {/* INPUT / TRIGGER */}
-      <div
+    <div className={`relative ${className}`} ref={wrapperRef}>
+      {/* Przycisk otwierający */}
+      <button
+        type="button"
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
         className={`
-          flex items-center justify-between w-full px-3 py-2 
-          border border-gray-300 rounded-lg bg-white shadow-sm transition-all duration-200
-          ${isOpen ? 'ring-2 ring-brand-100 border-brand-500' : 'hover:border-gray-400'}
-          ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'cursor-text'}
+          w-full flex items-center justify-between px-3 py-2 text-left bg-white border rounded-lg transition-all
+          ${disabled ? 'bg-gray-100 cursor-not-allowed border-gray-200 text-gray-400' : 'cursor-pointer hover:border-brand-400 focus:ring-2 focus:ring-brand-500/20'}
+          ${isOpen ? 'border-brand-500 ring-2 ring-brand-500/20' : 'border-gray-300'}
         `}
-        onClick={() => !disabled && setIsOpen(true)}
       >
-        <div className="flex items-center flex-1 min-w-0 gap-2">
-          <Search size={16} className={`flex-shrink-0 ${isOpen ? 'text-brand-500' : 'text-gray-400'}`} />
-          
-          <input
-            type="text"
-            className="w-full outline-none text-sm text-gray-700 placeholder-gray-400 bg-transparent truncate"
-            placeholder={value || placeholder} // Jeśli jest wartość, pokazujemy ją jako placeholder
-            value={isOpen ? searchTerm : (value || '')} // Pokazujemy szukanie gdy otwarte, wartość gdy zamknięte
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              if (!isOpen) setIsOpen(true);
-            }}
-            onFocus={() => {
-                if(!disabled) {
-                    setSearchTerm(''); // Czyścimy input przy fokusie, żeby ułatwić nowe wyszukiwanie
-                    setIsOpen(true);
-                }
-            }}
-            disabled={disabled}
-            autoComplete="off"
-          />
-        </div>
-        
-        {/* Przycisk czyszczenia */}
-        <div className="flex items-center gap-1">
-            {!disabled && value && (
-                <button 
-                    onClick={handleClear}
-                    className="p-1 hover:bg-red-50 rounded-full text-gray-400 hover:text-red-500 transition-colors"
-                    title="Wyczyść"
-                >
-                    <X size={14} />
-                </button>
-            )}
-            <ChevronDown 
-                size={16} 
-                className={`text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
-            />
-        </div>
-      </div>
+        <span className={`block truncate text-sm ${value ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
+          {value || placeholder}
+        </span>
+        <ChevronDown size={16} className={`ml-2 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
 
-      {/* LISTA ROZWIJANA (DROPDOWN) */}
-      {/* Używamy z-[9999], aby przebić się przez inne warstwy */}
-      {isOpen && !disabled && (
-        <div className="absolute z-[9999] w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto animate-in fade-in zoom-in-95 duration-100 origin-top left-0">
-          {options.length > 0 ? (
-            <div className="py-1">
-                {options.map((opt, idx) => (
-                <div
-                    key={`${opt.nazwa}-${idx}`}
-                    className={`
-                        px-3 py-2.5 text-sm cursor-pointer border-b border-gray-50 last:border-0 
-                        flex justify-between items-center group transition-colors
-                        ${opt.nazwa === value ? 'bg-brand-50 text-brand-700' : 'text-gray-700 hover:bg-gray-50'}
-                    `}
-                    onClick={() => handleSelect(opt.nazwa)}
+      {/* Lista rozwijana */}
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-60 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-100 origin-top">
+          
+          {/* Pasek wyszukiwania */}
+          <div className="p-2 border-b border-gray-100 bg-gray-50 sticky top-0 z-10">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <input
+                type="text"
+                autoFocus
+                className="w-full pl-9 pr-8 py-1.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                placeholder="Szukaj..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {searchTerm && (
+                <button 
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Lista wyników */}
+          <div className="overflow-y-auto flex-1 p-1 scrollbar-thin scrollbar-thumb-gray-200">
+            {allOptions.length > 0 ? (
+              <div className="space-y-0.5">
+                {allOptions.map((opt, idx) => (
+                  <div
+                    key={`${opt.id || idx}-${opt.nazwa}`} // Używamy ID jeśli jest, lub indeksu
+                    onClick={() => handleSelect(opt.nazwa)}
+                    className={`
+                      flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer text-sm group transition-colors
+                      ${opt.nazwa === value ? 'bg-brand-50 text-brand-700' : 'hover:bg-gray-50 text-gray-700'}
+                    `}
+                  >
                     <div className="flex flex-col min-w-0 mr-2">
                         <span className="font-medium truncate">{opt.nazwa}</span>
                         {/* Wyświetlamy opis tylko jeśli istnieje i nie jest pusty */}
@@ -135,20 +138,22 @@ const MaterialSelector = ({
                         {/* Cena wyświetlana tylko > 0 */}
                         {opt.cena > 0 && (
                             <span className="text-xs font-mono text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded group-hover:bg-white group-hover:text-gray-700">
-                                {opt.cena.toFixed(2)} zł
+                                {typeof opt.cena === 'number' ? opt.cena.toFixed(2) : parseFloat(opt.cena).toFixed(2)} zł
                             </span>
                         )}
                         {opt.nazwa === value && <Check size={14} className="text-brand-600" />}
                     </div>
-                </div>
+                  </div>
                 ))}
-            </div>
-          ) : (
-            <div className="p-4 text-sm text-gray-500 text-center flex flex-col items-center gap-2">
-                <Search size={20} className="opacity-20" />
-                <span>Nie znaleziono "{searchTerm}"</span>
-            </div>
-          )}
+              </div>
+            ) : (
+              <div className="p-8 text-center text-gray-500 flex flex-col items-center justify-center">
+                <Search size={24} className="opacity-20 mb-2" />
+                <p className="text-xs">Nie znaleziono materiału.</p>
+                {/* Opcjonalnie: przycisk dodawania nowego, jeśli chcesz */}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
