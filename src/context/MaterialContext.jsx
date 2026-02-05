@@ -5,21 +5,45 @@ import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 import { DROPDOWN_DATA } from '../data/dropdowns';
 
 const MaterialsContext = createContext();
-const prepareZeroPrices = (data) => {
-  const zeroedData = {};
-  Object.keys(data).forEach(category => {
-    // Sprawdzamy czy to tablica (nasze listy materiałów)
-    if (Array.isArray(data[category])) {
-      zeroedData[category] = data[category].map(item => ({
-        ...item,
-        cena: 0 // <--- Każdy materiał dostaje cenę 0 na start
-      }));
+
+// 🔧 FUNKCJA NAPRAWCZA (Sanityzacja) - TO JEST KLUCZ DO SUKCESU
+// Ta funkcja łączy dane z pliku z danymi usera i GWARANTUJE, że każdy element ma ID.
+const sanitizeAndMerge = (staticData, userData) => {
+  // 1. Łączymy kategorie (np. user dodał nową kategorię, której nie ma w pliku)
+  const merged = { ...staticData, ...userData };
+  const sanitized = {};
+
+  Object.keys(merged).forEach(category => {
+    const items = merged[category];
+    
+    if (Array.isArray(items)) {
+      sanitized[category] = items.map((item, index) => {
+        // 🚀 MAGIA: Generujemy ID na podstawie nazwy, jeśli go brakuje.
+        // Usuwamy spacje i znaki specjalne, żeby ID było bezpieczne (np. "Egger W1000" -> "eggerw1000")
+        const safeName = item.nazwa?.replace(/[^a-zA-Z0-9]/g, '').toLowerCase() || `item${index}`;
+        
+        // Jeśli element ma już ID (bo był edytowany), to je zostawiamy.
+        // Jeśli nie ma (bo jest z pliku), dostaje stałe ID "auto_..."
+        const generatedId = item.id || `auto_${category}_${safeName}`;
+        
+        return {
+          ...item,
+          id: generatedId,
+          // Upewniamy się, że cena jest liczbą (a nie tekstem "12.50")
+          cena: typeof item.cena === 'number' ? item.cena : parseFloat(item.cena || 0),
+          // Upewniamy się, że typ jest ustawiony (potrzebne do filtrów)
+          typ: item.typ || (category === 'okleina' && item.nazwa?.includes('KOSZT') ? 'usluga' : 'produkt'),
+          opis: item.opis || ''
+        };
+      });
     } else {
-      zeroedData[category] = data[category];
+      sanitized[category] = items;
     }
   });
-  return zeroedData;
+
+  return sanitized;
 };
+
 export const useMaterials = () => useContext(MaterialsContext);
 
 export const MaterialsProvider = ({ children }) => {
@@ -28,28 +52,29 @@ export const MaterialsProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Jeśli użytkownik nie jest zalogowany, używamy domyślnych danych.
+    // 1. Jeśli brak użytkownika, ładujemy dane statyczne, ale NAPRAWIONE (z ID)
     if (!currentUser) {
-      setMaterials(DROPDOWN_DATA);
+      setMaterials(sanitizeAndMerge(DROPDOWN_DATA, {}));
       setLoading(false);
       return;
     }
 
-    // Nasłuchiwanie zmian w bibliotece użytkownika
     const docRef = doc(db, 'users', currentUser.uid, 'materials', 'library');
+
+    // 2. Nasłuchujemy zmian w bazie
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
-        // Łączymy dane użytkownika z domyślnymi (żeby nowe kategorie się nie gubiły)
-        setMaterials(prev => ({
-          ...DROPDOWN_DATA,
-          ...docSnap.data()
-        }));
+        const userData = docSnap.data();
+        // Łączymy i naprawiamy dane w locie
+        const finalData = sanitizeAndMerge(DROPDOWN_DATA, userData);
+        setMaterials(finalData);
       } else {
-        // Tworzenie biblioteki dla nowego usera
-        const initialDataWithZeros = prepareZeroPrices(DROPDOWN_DATA);
+        // Pierwsze uruchomienie dla nowego usera - tworzymy czystą bazę z ID
+        const initialData = sanitizeAndMerge(DROPDOWN_DATA, {});
         
-        setDoc(docRef, initialDataWithZeros).catch(console.error);
-        setMaterials(initialDataWithZeros);
+        // Opcjonalnie: Zapisujemy te naprawione dane do bazy od razu
+        setDoc(docRef, initialData).catch(console.error);
+        setMaterials(initialData);
       }
       setLoading(false);
     }, (error) => {
@@ -60,25 +85,25 @@ export const MaterialsProvider = ({ children }) => {
     return () => unsubscribe();
   }, [currentUser]);
 
-  // ✅ NAPRAWIONA FUNKCJA ZAPISU
-  // Teraz przyjmuje dwa argumenty: kategorię i listę elementów
+  // Funkcja zapisu do bazy
   const updateMaterials = async (category, newItems) => {
     if (!currentUser) return;
+
+    // Przed samym zapisem upewniamy się na 100%, że wszystko ma ID
+    const itemsToSave = newItems.map(item => ({
+        ...item,
+        id: item.id || `save_${Date.now()}_${Math.random().toString(36).substr(2,5)}`
+    }));
 
     const docRef = doc(db, 'users', currentUser.uid, 'materials', 'library');
 
     try {
-      // Zapisujemy obiekt w formacie: { "drzwiPrzesuwne": [...] }
-      // Używamy merge: true, aby nie skasować innych kategorii
       await setDoc(docRef, {
-        [category]: newItems
+        [category]: itemsToSave
       }, { merge: true });
-      
-      // Uwaga: Nie musimy ręcznie robić setMaterials, bo onSnapshot powyżej
-      // sam wykryje zmianę w bazie i zaktualizuje stan aplikacji automatycznie.
     } catch (error) {
       console.error("Błąd zapisu materiałów:", error);
-      throw error; // Rzucamy błąd dalej, żeby MaterialsManager mógł wyświetlić alert
+      throw error;
     }
   };
 

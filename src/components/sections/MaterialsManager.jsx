@@ -43,7 +43,7 @@ const MaterialsManager = () => {
     });
   };
 
-  const handleSaveItem = async (e) => {
+const handleSaveItem = async (e) => {
     e.preventDefault();
     if (!editingItem) return;
     setIsSaving(true);
@@ -55,24 +55,36 @@ const MaterialsManager = () => {
 
         if (isNaN(finalPrice)) finalPrice = 0;
 
+        // ✅ TWORZYMY POPRAWNY OBIEKT
         const itemToSave = {
+            // Jeśli element ma już ID (np. wygenerowane przez nasz nowy Context), to je zachowujemy!
+            // Jeśli nie (jest całkiem nowy), tworzymy nowe unikalne ID.
+            id: editingItem.id || `new_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+            
             nazwa: editingItem.nazwa.trim(),
             opis: editingItem.opis ? editingItem.opis.trim() : '',
             cena: finalPrice,
-            kategoria: editingItem.kategoria || activeCategory
+            kategoria: editingItem.kategoria || activeCategory,
+            typ: editingItem.typ || 'produkt',
+            jednostka: editingItem.jednostka || 'szt'
         };
 
+        let newList;
         if (editingItem.isNew) {
-            currentList.push(itemToSave);
+            // Dodajemy nowy na koniec
+            newList = [...currentList, itemToSave];
         } else {
-            if (typeof editingItem.originalIndex === 'number' && editingItem.originalIndex >= 0) {
-                currentList[editingItem.originalIndex] = itemToSave;
+            // Aktualizujemy istniejący:
+            // Szukamy po ID (to jest teraz pewne rozwiązanie dzięki naprawie Contextu)
+            if (editingItem.id) {
+                newList = currentList.map(item => item.id === editingItem.id ? itemToSave : item);
             } else {
-                throw new Error("Błąd indeksu elementu");
+                // Fallback dla bardzo starych danych (na wszelki wypadek)
+                newList = currentList.map((item, index) => index === editingItem.originalIndex ? itemToSave : item);
             }
         }
 
-        await updateMaterials(activeCategory, currentList);
+        await updateMaterials(activeCategory, newList);
         setEditingItem(null);
     } catch (error) {
         console.error("Błąd zapisu:", error);
