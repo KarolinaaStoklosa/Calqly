@@ -15,7 +15,7 @@ const defaultCalculations = {
 
 const defaultSettings = {
   margin: 30, showVAT: true, vatRate: 23,
-  wasteSettings: { korpusyPolki: 20, fronty: 25, frontyNaBok: 25, tylHdf: 15 },
+  wasteSettings: { korpusyPolki: 20, fronty: 25, frontyNaBok: 25, plecy: 15 },
   transport: { distance: 0, pricePerKm: 4.00, active: false },
   projectType: 'KUCHNIA', projectTypePrice: 1000.00, projectTypeActive: false,
   serviceItems: [
@@ -48,7 +48,7 @@ export const ProjectProvider = ({ children }) => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [totals, setTotals] = useState({
     materialsTotal: 0, additionalTotal: 0, subtotal: 0, marginAmount: 0, netTotal: 0,
-    vatAmount: 0, grossTotal: 0, wasteDetails: {}, hdfCost: 0, transportCost: 0,
+    vatAmount: 0, grossTotal: 0, wasteDetails: {}, plecyCost: 0, transportCost: 0,
     projectCost: 0, servicesCost: 0, doliczoneCost: 0, sectionTotals: {}, nonMarginableTotal: 0
   });
 
@@ -83,17 +83,27 @@ export const ProjectProvider = ({ children }) => {
     const frontyCost = szafki.reduce((sum, item) => sum + getNum(item.cenaFront), 0);
     const widocznyBokCost = (calculations?.widocznyBok || []).reduce((sum, item) => sum + getNum(item.cenaCałość), 0);
     
-    const tylSurface = szafki
-      .filter(szafka => !szafka.tył || szafka.tył === 'HDF')
-      .reduce((sum, szafka) => sum + ((getNum(szafka.szerokość)) * (getNum(szafka.wysokość)) / 1000000), 0);
-
-    const hdfPrice = materials.tylHdf?.[0]?.cena ?? 0;
-    const hdfCost = (tylSurface * (1 + getNum(settings.wasteSettings?.tylHdf) / 100)) * hdfPrice;
+    const plecyWastePercent = getNum(settings.wasteSettings?.plecy ?? settings.wasteSettings?.tylHdf);
+    const getPlecyPrice = (name) => {
+      if (!name) return materials.tylHdf?.[0]?.cena ?? 0;
+      const item = materials.tyly?.find(entry => entry.nazwa === name);
+      return item?.cena ?? materials.tylHdf?.[0]?.cena ?? 0;
+    };
+    const plecyBaseCost = szafki.reduce((sum, szafka) => {
+      const backName = szafka.tył || 'HDF';
+      if (backName === 'Jak płyta korpusu') return sum;
+      const width = getNum(szafka.szerokość);
+      const height = getNum(szafka.wysokość);
+      if (width <= 0 || height <= 0) return sum;
+      const area = (width * height) / 1000000;
+      return sum + (area * getPlecyPrice(backName));
+    }, 0);
+    const plecyWasteCost = plecyBaseCost * (plecyWastePercent / 100);
     const wasteDetails = {
       korpusy: korpusyCost * (getNum(settings.wasteSettings?.korpusyPolki) / 100),
       fronty: frontyCost * (getNum(settings.wasteSettings?.fronty) / 100),
       frontyNaBok: widocznyBokCost * (getNum(settings.wasteSettings?.frontyNaBok) / 100),
-      hdf: hdfCost * (getNum(settings.wasteSettings?.tylHdf) / 100), // Odpady HDF też są liczone od poprawnej powierzchni
+      plecy: plecyWasteCost,
     };
     const totalWasteCost = Object.values(wasteDetails).reduce((sum, val) => sum + val, 0);
     const transportCost = settings.transport?.active ? (getNum(settings.transport.distance) * getNum(settings.transport.pricePerKm)) : 0;
@@ -105,7 +115,7 @@ export const ProjectProvider = ({ children }) => {
     const plytaNaDnoSzuflady = settings.doliczone?.plytaNaDnoSzuflady;
     const doliczoneCost = (stalaWartoscDoSzafek?.active ? getNum(stalaWartoscDoSzafek.price) * szafki.length : 0) + (plytaNaDnoSzuflady?.active ? getNum(plytaNaDnoSzuflady.surfacePerDrawer) * szuflady.length * getNum(plytaNaDnoSzuflady.pricePerM2) : 0);
     
-    // Koszt HDF jest już częścią `materialsTotal`. W kosztach dodatkowych uwzględniamy tylko odpady.
+    // Koszt pleców jest już częścią `materialsTotal`. W kosztach dodatkowych uwzględniamy tylko odpady.
     const additionalTotal = transportCost + projectCost + servicesCost + doliczoneCost + totalWasteCost;
     
     const subtotal = materialsTotal + additionalTotal;
@@ -118,7 +128,7 @@ export const ProjectProvider = ({ children }) => {
     const vatAmount = settings.showVAT ? (finalNetTotal * (getNum(settings.vatRate) / 100)) : 0;
     const grossTotal = finalNetTotal + vatAmount;
 
-    setTotals({ materialsTotal, additionalTotal, subtotal, marginAmount, netTotal, vatAmount, grossTotal, wasteDetails, hdfCost, transportCost, projectCost, servicesCost, doliczoneCost, sectionTotals, nonMarginableTotal });
+    setTotals({ materialsTotal, additionalTotal, subtotal, marginAmount, netTotal, vatAmount, grossTotal, wasteDetails, plecyCost: plecyBaseCost, transportCost, projectCost, servicesCost, doliczoneCost, sectionTotals, nonMarginableTotal });
   }, [calculations, settings, calculateProjectTotal, materials, calculateAggregatedMetrics, updateSettings]);
 
 

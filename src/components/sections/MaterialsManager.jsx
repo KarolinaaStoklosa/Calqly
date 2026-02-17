@@ -6,7 +6,7 @@ const CATEGORY_NAMES = {
   plytyMeblowe: "Płyty Meblowe",
   okleina: "Okleina",
   fronty: "Fronty",
-  tylHdf: "Tył HDF",
+    tyly: "Plecy",
   drzwiPrzesuwne: "Drzwi Przesuwne",
   uchwyty: "Uchwyty",
   zawiasy: "Zawiasy",

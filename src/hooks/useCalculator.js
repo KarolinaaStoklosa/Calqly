@@ -49,9 +49,9 @@ export const useCalculator = () => {
       // Koszt tyłu jest teraz częścią kosztu korpusu, więc zerujemy osobną cenę tyłu
       cenaTył_jedna = 0;
     } else {
-      // W przeciwnym razie (domyślnie HDF), liczymy koszt tyłu osobno
-      const cenaTylHdf = getItemPrice('tylHdf', 'HDF');
-      cenaTył_jedna = powierzchniaTył_jedna * cenaTylHdf;
+      // W przeciwnym razie, liczymy koszt tyłu z wybranego materiału
+      const cenaTylMaterial = getItemPrice('tyly', korpus.tył) || getItemPrice('tylHdf', 'HDF');
+      cenaTył_jedna = powierzchniaTył_jedna * cenaTylMaterial;
     }
     
     const okleinaKorpusMetry_jedna = ((2 * wys) + (2 * szer) + (półki * szer)) / 1000;

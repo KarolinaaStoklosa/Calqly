@@ -7,6 +7,7 @@ const CalculationSection = () => {
   const { calculations, settings, totals, updateSettings, isEditMode } = useProject();
   const { calculateAggregatedMetrics } = useProjectMetrics();
   const metrics = calculateAggregatedMetrics(calculations);
+  const plecyWastePercent = settings.wasteSettings?.plecy ?? settings.wasteSettings?.tylHdf ?? 0;
 
   const formatPrice = (price = 0) => `${price.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} zł`;
 
@@ -62,8 +63,8 @@ const CalculationSection = () => {
                     <BreakdownRow label="Transport:" value={formatPrice(totals.transportCost)} />
                 </div>
                 <div className="space-y-1 mt-4 lg:mt-0">
-                    <BreakdownRow label="Tył HDF:" value={formatPrice(totals.hdfCost)} />
-                    <BreakdownRow label="Odpady:" value={formatPrice(totals.wasteDetails.korpusy + totals.wasteDetails.fronty + totals.wasteDetails.frontyNaBok)} />
+                    <BreakdownRow label="Plecy:" value={formatPrice(totals.plecyCost || 0)} />
+                    <BreakdownRow label="Odpady:" value={formatPrice((totals.wasteDetails.korpusy || 0) + (totals.wasteDetails.fronty || 0) + (totals.wasteDetails.frontyNaBok || 0) + (totals.wasteDetails.plecy || 0))} />
                     <BreakdownRow label={`Narzut (${settings.margin}%):`} value={formatPrice(totals.marginAmount)}  isBold />
                     <BreakdownRow label="Pozycje niemarżowane:" value={formatPrice(totals.nonMarginableTotal)} />
                 </div>
@@ -266,7 +267,7 @@ const CalculationSection = () => {
               <RangeInput label={`Korpusy + półki (${settings.wasteSettings.korpusyPolki}%)`} value={settings.wasteSettings.korpusyPolki} onChange={e => handleNestedSettingChange('wasteSettings', 'korpusyPolki', parseInt(e.target.value))} amount={formatPrice(totals.wasteDetails.korpusy)} />
               <RangeInput label={`Fronty (${settings.wasteSettings.fronty}%)`} value={settings.wasteSettings.fronty} onChange={e => handleNestedSettingChange('wasteSettings', 'fronty', parseInt(e.target.value))} amount={formatPrice(totals.wasteDetails.fronty)} />
               <RangeInput label={`Fronty na bok (${settings.wasteSettings.frontyNaBok}%)`} value={settings.wasteSettings.frontyNaBok} onChange={e => handleNestedSettingChange('wasteSettings', 'frontyNaBok', parseInt(e.target.value))} amount={formatPrice(totals.wasteDetails.frontyNaBok)} />
-              <RangeInput label={`Tył HDF (${settings.wasteSettings.tylHdf}%)`} value={settings.wasteSettings.tylHdf} onChange={e => handleNestedSettingChange('wasteSettings', 'tylHdf', parseInt(e.target.value))} amount={formatPrice(totals.wasteDetails.hdf)} />
+              <RangeInput label={`Plecy (${plecyWastePercent}%)`} value={plecyWastePercent} onChange={e => handleNestedSettingChange('wasteSettings', 'plecy', parseInt(e.target.value))} amount={formatPrice(totals.wasteDetails.plecy || 0)} />
             </div>
             </fieldset>
           </div>

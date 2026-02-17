@@ -26,7 +26,7 @@ const KorpusyTable = ({ setActiveTab }) => {
       id: Date.now() + Math.random(),
       plytyKorpus: lastKorpus.plytyKorpus || plytyKorpusOptions[0]?.nazwa || '',
       plytyFront: lastKorpus.plytyFront || plytyFrontOptions[0]?.nazwa || '',
-      tył: 'HDF',
+      tył: lastKorpus.tył || 'HDF',
       okleina: lastKorpus.okleina || okleinaOptions[0]?.nazwa || '',
       okleinaFront: lastKorpus.okleinaFront || okleinaOptions[0]?.nazwa || '',
       ilośćSztuk: 1,
@@ -62,7 +62,7 @@ const KorpusyTable = ({ setActiveTab }) => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4 md:p-6 pb-24">
       <CategoryPriceAlert 
   category="plytyMeblowe" 
-  extraCategories={['fronty','okleina']} // Dodaj tutaj kategorie, które mają się "naprawić" razem
+  extraCategories={['fronty', 'okleina', 'tyly']} // Dodaj tutaj kategorie, które mają się "naprawić" razem
   setActiveTab={setActiveTab} 
 />
       {/* HEADER */}
@@ -272,6 +272,16 @@ const KorpusCard = ({ korpus, index, onUpdate, onRemove, isEditMode, showAdvance
                   placeholder="Wybierz okleinę..."
                   disabled={!isEditMode}
                   filterFn={(item) => item.kategoria === 'material'} // 👈 TO JEST TO CZEGO BRAKOWAŁO!
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Plecy</label>
+                <MaterialSelector
+                  category="tyly"
+                  value={korpus.tył || 'HDF'}
+                  onChange={(val) => onUpdate(korpus.id, 'tył', val)}
+                  placeholder="Wybierz plecy..."
+                  disabled={!isEditMode}
                 />
               </div>
             </div>

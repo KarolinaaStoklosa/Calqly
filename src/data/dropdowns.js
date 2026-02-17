@@ -205,11 +205,13 @@ const frontySpecjalne = [
 
 // 3. TYŁY / HDF
 const tyly = [
+  { nazwa: "HDF", cena: 6.96, opis: "Standardowy tył HDF", kategoria: "material" },
     { nazwa: "HDF 3mm Biały", cena: 15.00, opis: "Standard", kategoria: "material" },
     { nazwa: "HDF 3mm Kolor", cena: 20.00, opis: "Dopasowany", kategoria: "material" },
     { nazwa: "MDF 6mm Surowy", cena: 12.60, opis: "Pogrubiony tył", kategoria: "material" },
     { nazwa: "MDF 10mm Surowy", cena: 23.80, opis: "Szablon/Plecy", kategoria: "material" },
     { nazwa: "MDF 10mm 2xB", cena: 28.40, opis: "Laminowany", kategoria: "material" },
+  { nazwa: "Jak płyta korpusu", cena: 0.00, opis: "Tył z płyty korpusu", kategoria: "korpus" },
 ];
 
 // ŁĄCZYMY LISTY - To kluczowy krok
@@ -239,6 +241,9 @@ export const DROPDOWN_DATA = {
   tylHdf: [
     { "nazwa": "HDF", "cena": 6.96, "opis": "Standardowy tył HDF" }
   ],
+
+  // 🧱 TYŁY KORPUSÓW
+  tyly: tyly,
 
   // 🚪 DRZWI PRZESUWNE
   drzwiPrzesuwne: [
