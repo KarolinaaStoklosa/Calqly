@@ -17,7 +17,10 @@ const CategoryPriceAlert = ({ category, extraCategories = [], setActiveTab }) =>
       const isZero = !item.cena || parseFloat(item.cena) === 0;
       const upperName = item.nazwa?.toUpperCase() || '';
       const isPlaceholder = upperName.includes('BRAK') || item.kategoria === 'brak' || item.typ === 'brak';
-      const isAllowedZero = cat === 'okleina' && (upperName.includes('BRAK OKLEINY') || isPlaceholder);
+      const isSystemZero = item.kategoria === 'korpus' || item.typ === 'korpus';
+      const isAllowedZero =
+        (cat === 'okleina' && (upperName.includes('BRAK OKLEINY') || isPlaceholder)) ||
+        ((cat === 'fronty' || cat === 'tyly') && isSystemZero);
       return isZero && !isAllowedZero;
     });
   });
