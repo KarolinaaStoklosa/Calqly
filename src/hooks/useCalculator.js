@@ -98,10 +98,7 @@ export const useCalculator = () => {
       };
     }
 
-    console.log('🔍 szuflada.rodzaj:', szuflada.rodzaj);
-    
     const cenaJednostkowa = getItemPrice('szuflady', szuflada.rodzaj);
-    console.log('🔍 znaleziona cena:', cenaJednostkowa);
     
     const cenaCałość = cenaJednostkowa * ilość;
 
@@ -248,10 +245,7 @@ export const useCalculator = () => {
       };
     }
 
-    console.log('🔍 calculateBlat - blat.rodzaj:', blat.rodzaj);
-    
     const cenaJednostkowa = getItemPrice('blaty', blat.rodzaj);
-    console.log('🔍 calculateBlat - znaleziona cena:', cenaJednostkowa);
     
     const cenaCałość = cenaJednostkowa * ilość;
 

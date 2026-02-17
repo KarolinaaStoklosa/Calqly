@@ -183,12 +183,10 @@ export const ProjectProvider = ({ children }) => {
         };
         const newDocRef = await addDoc(projectsCollectionRef, docPayload);
         setActiveProjectId(newDocRef.id); // Ustawiamy nowy projekt jako aktywny
-        console.log(`Stworzono nowy projekt w archiwum: ${newDocRef.id}`);
       } else {
         // W przeciwnym razie, tylko aktualizujemy istniejący projekt
         const docRef = doc(db, 'users', currentUser.uid, 'projects', activeProjectId);
         await setDoc(docRef, { projectData: formData, lastSaved: serverTimestamp() }, { merge: true });
-        console.log(`Zaktualizowano dane projektu: ${activeProjectId}`);
       }
     } catch (error) {
       console.error("Błąd podczas zapisu danych projektu:", error);

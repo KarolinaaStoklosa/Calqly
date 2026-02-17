@@ -110,6 +110,18 @@ const handleSaveItem = async (e) => {
   const filteredItems = (materials[activeCategory] || [])
     .map((item, index) => ({ ...item, originalIndex: index }))
     .filter(item => {
+        if (activeCategory === 'tyly') {
+            const upperName = (item.nazwa || '').toUpperCase();
+            if (upperName === 'JAK PŁYTA KORPUSU' || item.kategoria === 'korpus' || item.typ === 'korpus') {
+                return false;
+            }
+        }
+        if (activeCategory === 'okleina') {
+            const upperName = (item.nazwa || '').toUpperCase();
+            if (upperName.includes('BRAK OKLEINY') || item.kategoria === 'brak' || item.typ === 'brak') {
+                return false;
+            }
+        }
         const term = searchTerm.toLowerCase();
         const nazwa = (item.nazwa || '').toLowerCase();
         const opis = (item.opis || '').toLowerCase();

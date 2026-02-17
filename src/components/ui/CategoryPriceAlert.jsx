@@ -15,8 +15,10 @@ const CategoryPriceAlert = ({ category, extraCategories = [], setActiveTab }) =>
     const items = materials[cat] || [];
     return items.some(item => {
       const isZero = !item.cena || parseFloat(item.cena) === 0;
-      const isNotPlaceholder = !item.nazwa?.toUpperCase().includes('BRAK');
-      return isZero && isNotPlaceholder;
+      const upperName = item.nazwa?.toUpperCase() || '';
+      const isPlaceholder = upperName.includes('BRAK') || item.kategoria === 'brak' || item.typ === 'brak';
+      const isAllowedZero = cat === 'okleina' && (upperName.includes('BRAK OKLEINY') || isPlaceholder);
+      return isZero && !isAllowedZero;
     });
   });
 

@@ -549,9 +549,6 @@ function generateSimplePDF(doc, data) {
 // 🎖️ GŁÓWNA KLASA PDF EXPORT SERVICE
 class PDFExportService {
   async generatePDF(offerData, type = 'detailed') {
-    console.log('🎖️ Professional PDF Export - Start:', type);
-    console.log('📊 Dane:', offerData);
-    
     try {
       const doc = new jsPDF('portrait', 'mm', 'a4');
       
