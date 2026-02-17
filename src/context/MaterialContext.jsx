@@ -10,11 +10,25 @@ const MaterialsContext = createContext();
 // Ta funkcja łączy dane z pliku z danymi usera i GWARANTUJE, że każdy element ma ID.
 const sanitizeAndMerge = (staticData, userData) => {
   // 1. Łączymy kategorie (np. user dodał nową kategorię, której nie ma w pliku)
-  const merged = { ...staticData, ...userData };
+  const categories = new Set([...Object.keys(staticData || {}), ...Object.keys(userData || {})]);
   const sanitized = {};
 
-  Object.keys(merged).forEach(category => {
-    const items = merged[category];
+  categories.forEach(category => {
+    const staticItems = staticData?.[category];
+    const userItems = userData?.[category];
+    let items = userItems;
+
+    if (Array.isArray(staticItems) || Array.isArray(userItems)) {
+      const hasUserItems = Array.isArray(userItems) && userItems.length > 0;
+      if (category === 'tyly' && Array.isArray(staticItems) && hasUserItems) {
+        const mergedMap = new Map();
+        staticItems.forEach(item => mergedMap.set(item.nazwa, item));
+        userItems.forEach(item => mergedMap.set(item.nazwa, item));
+        items = Array.from(mergedMap.values());
+      } else {
+        items = hasUserItems ? userItems : staticItems;
+      }
+    }
     
     if (Array.isArray(items)) {
       sanitized[category] = items.map((item, index) => {

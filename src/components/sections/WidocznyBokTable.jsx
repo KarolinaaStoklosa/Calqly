@@ -19,6 +19,7 @@ const WidocznyBokTable = ({ setActiveTab }) => {
       id: Date.now(), 
       rodzaj: frontyOptions.find(f => f.cena > 0)?.nazwa || '',
       okleina: '-- BRAK OKLEINY --',
+      autoExpand: true,
       szerokość: '', wysokość: '', ilość: '1'
     };
     addItem(newWidocznyBok);
@@ -116,6 +117,12 @@ const WidocznyBokTable = ({ setActiveTab }) => {
 // === ZMODYFIKOWANA KARTA (MOBILE-FIRST) ===
 const WidocznyBokCard = ({ bok, index, onUpdate, onRemove, showAdvanced, frontyOptions, okleinaOptions, formatPrice, formatSurface }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!bok.autoExpand) return;
+    setIsExpanded(true);
+    onUpdate(bok.id, 'autoExpand', false);
+  }, [bok.autoExpand, bok.id, onUpdate]);
 
   return (
     // 👇 CSS FIX: overflow-hidden usunięte, relative z-index dodany

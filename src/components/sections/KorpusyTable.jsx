@@ -29,6 +29,7 @@ const KorpusyTable = ({ setActiveTab }) => {
       tył: lastKorpus.tył || 'HDF',
       okleina: lastKorpus.okleina || okleinaOptions[0]?.nazwa || '',
       okleinaFront: lastKorpus.okleinaFront || okleinaOptions[0]?.nazwa || '',
+      autoExpand: true,
       ilośćSztuk: 1,
       podziałFrontu: 1,
       szerokość: '', wysokość: '', głębokość: '', ilośćPółek: '0',
@@ -165,6 +166,12 @@ const KorpusyTable = ({ setActiveTab }) => {
 // === ZMODYFIKOWANA KARTA KORPUSU (RESPONSIVE GRID) ===
 const KorpusCard = ({ korpus, index, onUpdate, onRemove, isEditMode, showAdvanced, plytyKorpusOptions, plytyFrontOptions, okleinaOptions, formatPrice, formatSurface }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!korpus.autoExpand) return;
+    setIsExpanded(true);
+    onUpdate(korpus.id, 'autoExpand', false);
+  }, [korpus.autoExpand, korpus.id, onUpdate]);
 
   return (
    <div 
