@@ -20,7 +20,7 @@ const sanitizeAndMerge = (staticData, userData) => {
 
     if (Array.isArray(staticItems) || Array.isArray(userItems)) {
       const hasUserItems = Array.isArray(userItems) && userItems.length > 0;
-      if (category === 'tyly' && Array.isArray(staticItems) && hasUserItems) {
+      if ((category === 'tyly' || category === 'fronty') && Array.isArray(staticItems) && hasUserItems) {
         const mergedMap = new Map();
         staticItems.forEach(item => mergedMap.set(item.nazwa, item));
         userItems.forEach(item => mergedMap.set(item.nazwa, item));
