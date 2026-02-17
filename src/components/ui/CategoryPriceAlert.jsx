@@ -18,9 +18,13 @@ const CategoryPriceAlert = ({ category, extraCategories = [], setActiveTab }) =>
       const upperName = item.nazwa?.toUpperCase() || '';
       const isPlaceholder = upperName.includes('BRAK') || item.kategoria === 'brak' || item.typ === 'brak';
       const isSystemZero = item.kategoria === 'korpus' || item.typ === 'korpus';
+      const isSystemZeroName =
+        upperName.includes('JAK PŁYTA KORPUS') ||
+        upperName.includes('<< JAK PŁYTA KORPUS') ||
+        upperName.includes('BRAK FRONTU');
       const isAllowedZero =
         (cat === 'okleina' && (upperName.includes('BRAK OKLEINY') || isPlaceholder)) ||
-        ((cat === 'fronty' || cat === 'tyly') && isSystemZero);
+        ((cat === 'fronty' || cat === 'tyly') && (isSystemZero || isSystemZeroName));
       return isZero && !isAllowedZero;
     });
   });
