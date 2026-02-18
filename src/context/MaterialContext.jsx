@@ -19,14 +19,20 @@ const sanitizeAndMerge = (staticData, userData) => {
     let items = userItems;
 
     if (Array.isArray(staticItems) || Array.isArray(userItems)) {
+      const hasStaticItems = Array.isArray(staticItems) && staticItems.length > 0;
       const hasUserItems = Array.isArray(userItems) && userItems.length > 0;
-      if ((category === 'tyly' || category === 'fronty') && Array.isArray(staticItems) && hasUserItems) {
+      
+      // Zawsze merguj dane: statyczne mają priorytet niższy niż user data
+      // Chyba że to są system options (tyly, fronty) - wtedy zawsze powinny być dostępne
+      if (hasStaticItems && hasUserItems) {
         const mergedMap = new Map();
         staticItems.forEach(item => mergedMap.set(item.nazwa, item));
         userItems.forEach(item => mergedMap.set(item.nazwa, item));
         items = Array.from(mergedMap.values());
-      } else {
-        items = hasUserItems ? userItems : staticItems;
+      } else if (hasUserItems) {
+        items = userItems;
+      } else if (hasStaticItems) {
+        items = staticItems;
       }
     }
     
