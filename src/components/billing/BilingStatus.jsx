@@ -55,6 +55,19 @@ const BillingStatus = ({ variant = 'card' }) => {
             )}
           </div>
         );
+
+      case 'manual_paid':
+        return (
+          <div className={baseClasses.container}>
+            {variant === 'card' && <h3 className={baseClasses.title}>Status Twojego Konta</h3>}
+            <p className={baseClasses.text}>
+              Dostęp jednorazowy aktywny do: <strong>{accessExpiresAt?.toDate().toLocaleDateString('pl-PL')}</strong>
+            </p>
+            <button onClick={() => navigate('/subscribe')} className={baseClasses.button}>
+              Przedłuż dostęp
+            </button>
+          </div>
+        );
       
       case 'active':
         if (accessExpiresAt) {

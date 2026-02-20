@@ -20,7 +20,10 @@ const ProtectedRoute = ({ children }) => {
   }
 
 // STATUS OSTATECZNY: AuthContext ustalił, czy dostęp jest ważny (również jednorazowy)
-  const hasValidAccess = subscriptionStatus === 'active' || subscriptionStatus === 'trialing';
+  const hasValidAccess =
+    subscriptionStatus === 'active' ||
+    subscriptionStatus === 'trialing' ||
+    subscriptionStatus === 'manual_paid';
   
   // Czy trasa to jedna ze stron płatności?
   const isSubscriptionRoute = ['/subscribe', '/success', '/cancel'].includes(location.pathname);
