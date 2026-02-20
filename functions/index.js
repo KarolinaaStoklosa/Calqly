@@ -368,6 +368,8 @@ exports.stripeWebhook = onRequest(async (req, res) => {
         
         if (userId) {
             const userRef = admin.firestore().collection('users').doc(userId);
+          const userDoc = await userRef.get();
+          const existingData = userDoc.exists ? userDoc.data() : {};
             
             // Zapisz ID klienta na przyszłość
             logger.info(`💾 Zapisuję stripeCustomerId: ${session.customer}`);
@@ -375,20 +377,33 @@ exports.stripeWebhook = onRequest(async (req, res) => {
 
             // Jeśli to tryb 'payment' (jednorazowy) i zapłacono:
             if (session.mode === 'payment' && session.payment_status === 'paid') {
+            const lastCheckoutSessionId = existingData?.subscription?.lastCheckoutSessionId;
+            if (lastCheckoutSessionId === session.id) {
+              logger.warn(`⚠️ DUPLIKAT EVENTU: session ${session.id} już była przetworzona - pomijam`);
+              break;
+            }
                 
                 // Odczytujemy liczbę dni z metadanych (którą wstawiliśmy w createStripeCheckout)
                 const daysToAdd = parseInt(session.metadata.accessDays || '30');
                 logger.info(`📅 BLIK płatność: +${daysToAdd} dni dostępu`);
                 
-                // Obliczamy nową datę wygaśnięcia (od dzisiaj + X dni)
+            // Obliczamy nową datę wygaśnięcia od późniejszej daty:
+            // max(obecny accessExpiresAt, teraz)
                 const now = new Date();
-                const newExpiryDate = new Date(now.setDate(now.getDate() + daysToAdd));
+            const existingExpiresAt = existingData?.accessExpiresAt?.toDate?.() || null;
+            const baseDate = existingExpiresAt && existingExpiresAt > now ? existingExpiresAt : now;
+            const newExpiryDate = new Date(baseDate);
+            newExpiryDate.setDate(newExpiryDate.getDate() + daysToAdd);
                 
+            logger.info(`🧮 baseDate: ${baseDate.toISOString()} | existing: ${existingExpiresAt ? existingExpiresAt.toISOString() : 'brak'} | now: ${now.toISOString()}`);
                 logger.info(`⏰ accessExpiresAt: ${newExpiryDate.toISOString()}`);
                 await userRef.set({
                     accessExpiresAt: admin.firestore.Timestamp.fromDate(newExpiryDate),
                     // Ustawiamy status 'manual_paid' (żeby frontend wiedział, że nie ma subskrypcji, ale jest OK)
-                    subscription: { status: 'manual_paid' } 
+              subscription: {
+                status: 'manual_paid',
+                lastCheckoutSessionId: session.id
+              }
                 }, { merge: true });
 
                 logger.info(`✅ BLIK: Przyznano dostęp dla ${userId} na ${daysToAdd} dni.`);

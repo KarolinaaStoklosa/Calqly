@@ -8,7 +8,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup
 } from 'firebase/auth';
-import { getFirestore, doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
 import app from '../firebase/config';
 import { DEFAULT_COMPANY_SETTINGS } from '../data/companyDefaults';
 
@@ -59,18 +59,29 @@ export const AuthProvider = ({ children }) => {
     const userCredential = await signInWithPopup(auth, provider);
     const user = userCredential.user;
     const userRef = doc(db, 'users', user.uid);
-    const trialEndDate = new Date();
-    trialEndDate.setDate(trialEndDate.getDate() + 7);
-    
-    await setDoc(userRef, {
+
+    const existingUserDoc = await getDoc(userRef);
+
+    if (!existingUserDoc.exists()) {
+      const trialEndDate = new Date();
+      trialEndDate.setDate(trialEndDate.getDate() + 7);
+
+      await setDoc(userRef, {
         email: user.email,
         createdAt: new Date(),
-        accessExpiresAt: trialEndDate, // Data wygaśnięcia dostępu
-        subscription: { 
-          status: 'trialing', // Status wskazujący na okres próbny
-          trial_end: trialEndDate // Pole używane przez BillingStatus.jsx
+        accessExpiresAt: trialEndDate,
+        subscription: {
+          status: 'trialing',
+          trial_end: trialEndDate
         },
-    }, { merge: true });
+        settings: {}
+      }, { merge: true });
+    } else {
+      await setDoc(userRef, {
+        email: user.email
+      }, { merge: true });
+    }
+
     return userCredential;
   };
   
