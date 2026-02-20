@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 const ExpirationNotifier = () => {
   const { subscriptionStatus, userData } = useAuth();
   
-  if (subscriptionStatus !== 'active' || !userData?.accessExpiresAt) {
+  if ((subscriptionStatus !== 'active' && subscriptionStatus !== 'manual_paid') || !userData?.accessExpiresAt) {
     return null;
   }
 

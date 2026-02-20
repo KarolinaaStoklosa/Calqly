@@ -34,7 +34,7 @@ const ProtectedRoute = ({ children }) => {
   }
 
   // 2. BLOKADA DOSTĘPU DO PŁATNOŚCI: Użytkownik z aktywnym dostępem próbuje wejść na /subscribe
-  const isFullyActive = subscriptionStatus === 'active'; 
+  const isFullyActive = subscriptionStatus === 'active' || subscriptionStatus === 'manual_paid'; 
 
 if (isFullyActive && isSubscriptionRoute) {
   return <Navigate to="/" replace />;
