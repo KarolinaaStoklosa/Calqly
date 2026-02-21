@@ -19,20 +19,14 @@ const sanitizeAndMerge = (staticData, userData) => {
     let items = userItems;
 
     if (Array.isArray(staticItems) || Array.isArray(userItems)) {
-      const hasStaticItems = Array.isArray(staticItems) && staticItems.length > 0;
       const hasUserItems = Array.isArray(userItems) && userItems.length > 0;
-      
-      // Zawsze merguj dane: statyczne mają priorytet niższy niż user data
-      // Chyba że to są system options (tyly, fronty) - wtedy zawsze powinny być dostępne
-      if (hasStaticItems && hasUserItems) {
+      if ((category === 'tyly' || category === 'fronty') && Array.isArray(staticItems) && hasUserItems) {
         const mergedMap = new Map();
         staticItems.forEach(item => mergedMap.set(item.nazwa, item));
         userItems.forEach(item => mergedMap.set(item.nazwa, item));
         items = Array.from(mergedMap.values());
-      } else if (hasUserItems) {
-        items = userItems;
-      } else if (hasStaticItems) {
-        items = staticItems;
+      } else {
+        items = hasUserItems ? userItems : staticItems;
       }
     }
     
@@ -85,14 +79,14 @@ export const MaterialsProvider = ({ children }) => {
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         const userData = docSnap.data();
-        // Łączymy i naprawiamy dane w locie
-        const finalData = sanitizeAndMerge(DROPDOWN_DATA, userData);
+        // TYLKO dane usera - bez mergowania z domyślnymi
+        const finalData = sanitizeAndMerge({}, userData);
         setMaterials(finalData);
       } else {
-        // Pierwsze uruchomienie dla nowego usera - tworzymy czystą bazę z ID
+        // Pierwszy login - tworzysz czystą bazę z domyślnych
         const initialData = sanitizeAndMerge(DROPDOWN_DATA, {});
         
-        // Opcjonalnie: Zapisujemy te naprawione dane do bazy od razu
+        // Zapisz do Firestore
         setDoc(docRef, initialData).catch(console.error);
         setMaterials(initialData);
       }
