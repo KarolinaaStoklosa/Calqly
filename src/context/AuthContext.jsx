@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
     const userRef = doc(db, 'users', user.uid);
 
     const trialEndDate = new Date();
-    trialEndDate.setDate(trialEndDate.getDate() + 7);
+    trialEndDate.setDate(trialEndDate.getDate() + 30);
     // Przy rejestracji tworzymy dokument z domyślnymi, pustymi ustawieniami
     await setDoc(userRef, {
       email: user.email,
@@ -64,7 +64,7 @@ export const AuthProvider = ({ children }) => {
 
     if (!existingUserDoc.exists()) {
       const trialEndDate = new Date();
-      trialEndDate.setDate(trialEndDate.getDate() + 7);
+      trialEndDate.setDate(trialEndDate.getDate() + 30);
 
       await setDoc(userRef, {
         email: user.email,

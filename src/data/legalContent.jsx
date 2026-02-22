@@ -86,7 +86,7 @@ export const TermsContent = (
     <H2>§ 4. Rejestracja i Okres Próbny</H2>
     <P>
       1. Rejestracja w Aplikacji jest dobrowolna i bezpłatna.<br/>
-      2. Każdemu nowemu Użytkownikowi przysługuje jednorazowy, bezpłatny okres próbny ("Trial") trwający <strong>7 dni</strong> od momentu rejestracji.<br/>
+      2. Każdemu nowemu Użytkownikowi przysługuje jednorazowy, bezpłatny okres próbny ("Trial") trwający <strong>30 dni</strong> od momentu rejestracji.<br/>
       3. W trakcie okresu próbnego Użytkownik ma dostęp do pełnej funkcjonalności Aplikacji bez konieczności podawania danych karty płatniczej.<br/>
       4. Po upływie 7 dni dostęp do funkcji kalkulacyjnych zostaje zablokowany do momentu wykupienia płatnego planu.
     </P>
