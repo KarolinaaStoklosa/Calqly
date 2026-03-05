@@ -3,11 +3,21 @@ const { onRequest } = require("firebase-functions/v2/https");
 const { logger } = require("firebase-functions");
 const admin = require("firebase-admin");
 
-// Inicjalizacja Stripe
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY || "sk_test_dummy_key_for_deploy_analysis";
-const stripe = require("stripe")(stripeSecretKey, {
+// Inicjalizacja Stripe (lazy, aby nie wywracać deploya podczas analizy)
+const createStripeClient = (secretKey) => require("stripe")(secretKey, {
   apiVersion: '2024-06-20',
 });
+
+const assertStripeConfigured = () => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new HttpsError('failed-precondition', 'Brak konfiguracji Stripe na serwerze.');
+  }
+};
+
+const getStripeForCallable = () => {
+  assertStripeConfigured();
+  return createStripeClient(process.env.STRIPE_SECRET_KEY);
+};
 
 // Inicjalizacja Admina (musi być raz)
 admin.initializeApp();
@@ -38,8 +48,42 @@ const toFirestoreTimestamp = (seconds) => {
   return null;
 };
 
+const isAccessGrantingStatus = (status) => ['active', 'trialing', 'manual_paid'].includes(status);
+
+const shouldSkipSubscriptionOverwrite = ({ existingSubscription, incomingSubscription, eventCreated }) => {
+  const existingStatus = existingSubscription?.status;
+  const existingSubscriptionId = existingSubscription?.id;
+  const existingEventCreated = existingSubscription?.last_event_created || 0;
+
+  const incomingStatus = incomingSubscription?.status;
+  const incomingSubscriptionId = incomingSubscription?.id;
+
+  if (
+    existingSubscriptionId &&
+    incomingSubscriptionId &&
+    existingSubscriptionId === incomingSubscriptionId &&
+    typeof existingEventCreated === 'number' &&
+    existingEventCreated > eventCreated
+  ) {
+    return true;
+  }
+
+  if (
+    isAccessGrantingStatus(existingStatus) &&
+    !isAccessGrantingStatus(incomingStatus) &&
+    existingSubscriptionId &&
+    incomingSubscriptionId &&
+    existingSubscriptionId !== incomingSubscriptionId
+  ) {
+    return true;
+  }
+
+  return false;
+};
+
 // ✅ POMOCNICZA: Szukanie usera po Stripe Customer ID (z 3 fallback'ami!)
 async function findUidByCustomerId(customerId, subscriptionMetadata = {}) {
+  const stripe = process.env.STRIPE_SECRET_KEY ? createStripeClient(process.env.STRIPE_SECRET_KEY) : null;
     const usersRef = admin.firestore().collection('users');
     
     logger.info(`🔍 findUidByCustomerId START | customerId: ${customerId} | hasMetadata: ${!!subscriptionMetadata}`);
@@ -74,6 +118,10 @@ async function findUidByCustomerId(customerId, subscriptionMetadata = {}) {
     logger.warn(`⚠️ Fallback 3: Nie znaleziono po stripeCustomerId. Szukam po emailu...`);
     
     try {
+      if (!stripe) {
+        logger.error(`❌ Fallback 3: Brak STRIPE_SECRET_KEY, pomijam lookup po Stripe customer.`);
+        return null;
+      }
         const stripeCustomer = await stripe.customers.retrieve(customerId);
         if (!stripeCustomer) {
             logger.error(`❌ Fallback 3: Stripe customer ${customerId} nie istnieje!`);
@@ -115,10 +163,20 @@ const ALLOWED_ORIGINS = [
     'http://localhost:5174' 
 ];
 
+const IGNORED_STRIPE_EVENT_IDS = new Set([
+  'evt_1T70JBB04sIrbcnlFsPqhRo7',
+]);
+
 /**
  * Funkcja 1: Tworzenie sesji Checkout (Hybrydowa: Karta lub BLIK)
  */
-exports.createStripeCheckout = onCall({ cors: ALLOWED_ORIGINS }, async (request) => {
+exports.createStripeCheckout = onCall({
+  cors: ALLOWED_ORIGINS,
+  memory: "512MiB",
+  timeoutSeconds: 60
+}, async (request) => {
+  const stripe = getStripeForCallable();
+
   if (!request.auth) {
     throw new HttpsError("unauthenticated", "Musisz być zalogowany.");
   }
@@ -138,6 +196,11 @@ exports.createStripeCheckout = onCall({ cors: ALLOWED_ORIGINS }, async (request)
       logger.error(`❌ Nieznany priceId: ${priceId}`);
       throw new HttpsError('invalid-argument', 'Nieprawidłowy identyfikator planu (priceId).');
   }
+
+    if (!['subscription', 'payment'].includes(mode)) {
+      logger.error(`❌ Nieprawidłowy mode checkout: ${mode}`);
+      throw new HttpsError('invalid-argument', 'Nieprawidłowy tryb płatności (mode).');
+    }
 
   // 2. Decyzja: Którego ID ceny użyć?
   let finalPriceId = priceId; // Domyślnie: Subskrypcja
@@ -250,7 +313,13 @@ exports.createStripeCheckout = onCall({ cors: ALLOWED_ORIGINS }, async (request)
 /**
  * Funkcja 2: Portal Klienta
  */
-exports.createPortalLink = onCall({ cors: true }, async (request) => {
+exports.createPortalLink = onCall({
+  cors: true,
+  memory: "512MiB",
+  timeoutSeconds: 60
+}, async (request) => {
+  const stripe = getStripeForCallable();
+
     if (!request.auth) throw new HttpsError("unauthenticated", "Musisz być zalogowany.");
     
     const uid = request.auth.uid;
@@ -289,8 +358,18 @@ exports.createPortalLink = onCall({ cors: true }, async (request) => {
 /**
  * Funkcja 3: Webhook (Kluczowa dla aktualizacji uprawnień)
  */
-exports.stripeWebhook = onRequest(async (req, res) => {
+exports.stripeWebhook = onRequest({
+  memory: "512MiB",
+  timeoutSeconds: 60
+}, async (req, res) => {
   logger.info(`🔔 WEBHOOK RECEIVED`);
+
+  const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+  if (!stripeSecretKey) {
+    logger.error(`❌ STRIPE_SECRET_KEY nie jest ustawiony!`);
+    return res.status(500).send('Stripe Secret not configured');
+  }
+  const stripe = createStripeClient(stripeSecretKey);
   
   const signature = req.headers["stripe-signature"];
   const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET; 
@@ -309,6 +388,11 @@ exports.stripeWebhook = onRequest(async (req, res) => {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
+  if (IGNORED_STRIPE_EVENT_IDS.has(event.id)) {
+    logger.warn(`⚠️ Ignoruję event ${event.id} na podstawie IGNORED_STRIPE_EVENT_IDS.`);
+    return res.status(200).send();
+  }
+
   const dataObject = event.data.object;
 
   try {
@@ -325,15 +409,41 @@ exports.stripeWebhook = onRequest(async (req, res) => {
 
         if (userId) {
             const userRef = admin.firestore().collection('users').doc(userId);
+            const userDoc = await userRef.get();
+            const existingSubscription = userDoc.exists ? userDoc.data()?.subscription || {} : {};
+
+            const skipOverwrite = shouldSkipSubscriptionOverwrite({
+              existingSubscription,
+              incomingSubscription: subscription,
+              eventCreated: event.created || 0,
+            });
+
+            const isExactDuplicateEventForSameSubscription =
+              existingSubscription?.id &&
+              existingSubscription.id === subscription.id &&
+              existingSubscription?.last_event_id === event.id;
+
+            if (isExactDuplicateEventForSameSubscription) {
+              logger.warn(`⚠️ DUPLIKAT EVENTU: ${event.id} dla subskrypcji ${subscription.id} - pomijam.`);
+              break;
+            }
+
+            if (skipOverwrite) {
+              logger.warn(`⚠️ Pomijam nadpisanie statusu subskrypcji dla ${userId}. existing=${existingSubscription.status || 'brak'} incoming=${subscription.status} existingSubId=${existingSubscription.id || 'brak'} incomingSubId=${subscription.id || 'brak'}`);
+              break;
+            }
             
             // 1. Zapisz szczegóły subskrypcji
-            await userRef.set({ 
-                subscription: {
-                    status: subscription.status,
-                    priceId: subscription.items?.data?.[0]?.price?.id || null,
-                    current_period_end: toFirestoreTimestamp(subscription.current_period_end),
-                    cancel_at_period_end: subscription.cancel_at_period_end
-                }
+            await userRef.set({
+              subscription: {
+                id: subscription.id,
+                status: subscription.status,
+                priceId: subscription.items?.data?.[0]?.price?.id || null,
+                current_period_end: toFirestoreTimestamp(subscription.current_period_end),
+                cancel_at_period_end: subscription.cancel_at_period_end,
+                last_event_created: event.created || null,
+                last_event_id: event.id,
+              }
             }, { merge: true });
             
             // 2. Jeśli aktywna -> ustaw globalny dostęp w 'accessExpiresAt'
@@ -399,11 +509,10 @@ exports.stripeWebhook = onRequest(async (req, res) => {
                 logger.info(`⏰ accessExpiresAt: ${newExpiryDate.toISOString()}`);
                 await userRef.set({
                     accessExpiresAt: admin.firestore.Timestamp.fromDate(newExpiryDate),
-                    // Ustawiamy status 'manual_paid' (żeby frontend wiedział, że nie ma subskrypcji, ale jest OK)
-              subscription: {
-                status: 'manual_paid',
-                lastCheckoutSessionId: session.id
-              }
+                    subscription: {
+                      status: 'manual_paid',
+                      lastCheckoutSessionId: session.id
+                    }
                 }, { merge: true });
 
                 logger.info(`✅ BLIK: Przyznano dostęp dla ${userId} na ${daysToAdd} dni.`);

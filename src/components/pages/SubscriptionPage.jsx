@@ -257,7 +257,7 @@ const [wantsInvoice, setWantsInvoice] = useState(false); // <--- NOWY STAN
       {/* STOPKA PRAWNA */}
       <div className="pb-12 text-center max-w-2xl mx-auto px-4">
         <p className="text-[11px] leading-relaxed text-gray-400">
-          Operatorem płatności i dostawcą usługi jest <strong>TREEO ART</strong> (właściciel marki Woodly Group).<br/>
+          Operatorem płatności i dostawcą usługi jest <strong>WOODLY GROUP SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ</strong>.<br/>
           Faktura VAT zostanie wystawiona automatycznie po dokonaniu płatności.
         </p>
       </div>

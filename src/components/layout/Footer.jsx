@@ -16,7 +16,7 @@ const Footer = () => {
             <span>Powered by WOODLY GROUP</span>
           </p>
           <p className="mt-1">
-            Usługa dostarczana przez: <strong>TREEO ART Bartłomiej Stokłosa, Sebastian Rzepecki S.C., NIP: 8681987513</strong>.
+            Usługa dostarczana przez: <strong>WOODLY GROUP SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ, NIP: 8682002241</strong>.
           </p>
         </div>
 
