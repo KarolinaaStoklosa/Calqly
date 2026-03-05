@@ -63,8 +63,8 @@ export const TermsContent = (
     <H2>§ 1. Postanowienia Ogólne</H2>
     <P>
       1. Niniejszy Regulamin określa zasady korzystania z aplikacji internetowej <strong>Qalqly</strong> (zwanej dalej "Aplikacją"), dostępnej w modelu SaaS.<br />
-      2. Właścicielem marki "WOODLY GROUP" oraz Aplikacji jest {COMPANY_DATA.name}.<br />
-      3. Operatorem Aplikacji, Sprzedawcą usług oraz podmiotem odpowiedzialnym za obsługę płatności i wystawianie faktur VAT jest: <br />
+      2. Aplikacja <strong>Qalqly</strong> jest produktem <strong>WOODLY GROUP</strong>.<br />
+      3. Usługodawcą, operatorem Aplikacji, sprzedawcą usług oraz podmiotem odpowiedzialnym za obsługę płatności i wystawianie faktur VAT jest: <br />
       <strong>{COMPANY_DATA.name}</strong>, {COMPANY_DATA.address}, NIP: {COMPANY_DATA.nip}, REGON: {COMPANY_DATA.regon}, e-mail: {COMPANY_DATA.email} (zwany dalej "Usługodawcą").<br />
       4. Użytkownikiem jest każdy podmiot (osoba fizyczna prowadząca działalność gospodarczą, osoba prawna), który korzysta z Aplikacji. Usługa skierowana jest przede wszystkim do klientów biznesowych (B2B).
     </P>
@@ -196,7 +196,7 @@ export const DisclaimerContent = (
 
     <H2>Charakter Aplikacji</H2>
     <P>
-      Aplikacja Qalqly, dostarczana pod marką <strong>WOODLY GROUP</strong>, jest specjalistycznym oprogramowaniem wspomagającym proces wyceny. Należy jednak pamiętać, że jest to <strong>wyłącznie narzędzie pomocnicze</strong>. Algorytmy opierają się na danych wejściowych zdefiniowanych przez Użytkownika.
+      Aplikacja Qalqly jest produktem <strong>WOODLY GROUP</strong> i stanowi specjalistyczne oprogramowanie wspomagające proces wyceny. Należy jednak pamiętać, że jest to <strong>wyłącznie narzędzie pomocnicze</strong>. Algorytmy opierają się na danych wejściowych zdefiniowanych przez Użytkownika.
     </P>
 
     <ImportantBlock title="ODPOWIEDZIALNOŚĆ UŻYTKOWNIKA" type="blue">
@@ -221,7 +221,7 @@ export const DisclaimerContent = (
 
     <H2>Prawa Autorskie</H2>
     <P>
-      Właścicielem praw majątkowych do marki WOODLY GROUP jest {COMPANY_DATA.name}. Operatorem upoważnionym do sprzedaży subskrypcji jest {COMPANY_DATA.name}. Kopiowanie kodu lub elementów graficznych bez zgody jest zabronione.
+      Właścicielem autorskich praw majątkowych do marki WOODLY GROUP i Aplikacji Qalqly oraz operatorem Aplikacji i sprzedawcą subskrypcji jest {COMPANY_DATA.name}. Kopiowanie kodu lub elementów graficznych bez uprzedniej zgody jest zabronione.
     </P>
     
     <ImportantBlock title="AKCEPTACJA" type="warning">
