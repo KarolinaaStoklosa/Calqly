@@ -24,6 +24,7 @@ const KorpusyTable = ({ setActiveTab }) => {
     const lastKorpus = korpusy.length > 0 ? korpusy[korpusy.length - 1] : {};
     const newKorpus = {
       id: Date.now() + Math.random(),
+      nazwa: `Korpus ${korpusy.length + 1}`,
       plytyKorpus: lastKorpus.plytyKorpus || plytyKorpusOptions[0]?.nazwa || '',
       plytyFront: lastKorpus.plytyFront || plytyFrontOptions[0]?.nazwa || '',
       tył: lastKorpus.tył || 'HDF',
@@ -188,7 +189,7 @@ const KorpusCard = ({ korpus, index, onUpdate, onRemove, isEditMode, showAdvance
                 </div>
                 <div>
                   <h3 className="font-bold text-gray-800 text-sm md:text-base flex items-center gap-2">
-                    Korpus #{index + 1}
+                    {korpus.nazwa?.trim() || `Korpus ${index + 1}`}
                     {korpus.ilośćSztuk > 1 && <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full text-xs">x{korpus.ilośćSztuk}</span>}
                   </h3>
                   {/* Wymiary pod tytułem na mobile */}
@@ -228,6 +229,19 @@ const KorpusCard = ({ korpus, index, onUpdate, onRemove, isEditMode, showAdvance
       {/* EXPANDED FORM - GRID SYSTEM (Również poprawiony pod mobile) */}
       {isExpanded && (
         <div className="p-4 bg-gray-50/50 space-y-4 animate-in slide-in-from-top-2 duration-200">
+
+          <div>
+            <label className="text-[10px] font-bold text-gray-400 uppercase">Nazwa korpusu</label>
+            <input
+              type="text"
+              value={korpus.nazwa || ''}
+              onChange={(e) => onUpdate(korpus.id, 'nazwa', e.target.value)}
+              disabled={!isEditMode}
+              maxLength={80}
+              className="w-full p-2 bg-white border rounded-lg text-sm"
+              placeholder={`Korpus ${index + 1}`}
+            />
+          </div>
           
           {/* Sekcja Wymiarów - Grid 2 kolumny na mobile */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
