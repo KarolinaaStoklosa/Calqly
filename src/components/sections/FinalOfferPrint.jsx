@@ -7,16 +7,38 @@ const FinalOfferPrint = ({ offerData, onClose }) => {
 
   const handlePrint = () => {
     const printHtml = ReactDOMServer.renderToStaticMarkup(<PrintableContent {...offerData} />);
-    const printCss = `body { font-family: Arial, sans-serif; margin: 0; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; } @page { size: A4; margin: 0; } .no-break { page-break-inside: avoid; }`;
     const offerNumber = offerData?.clientData?.offerNumber || 'oferta';
-    const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Oferta ${offerNumber}</title><style>${printCss}</style></head><body>${printHtml}</body></html>`;
+
+    const printCss = `
+      * { box-sizing: border-box; }
+      body { font-family: Arial, sans-serif; margin: 0; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
+      @page { size: A4; margin: 0; }
+      .no-break { page-break-inside: avoid; }
+      #print-toolbar { position: fixed; top: 0; left: 0; right: 0; z-index: 9999; background: #1f2937; color: white; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-family: Arial, sans-serif; }
+      #print-toolbar button { padding: 10px 20px; background: #ff3d00; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: 700; cursor: pointer; }
+      #print-toolbar span { font-size: 14px; opacity: 0.8; }
+      #content-wrapper { margin-top: 56px; }
+      @media print { #print-toolbar { display: none !important; } #content-wrapper { margin-top: 0; } }
+    `;
+
+    const toolbarHtml = `
+      <div id="print-toolbar">
+        <span>📄 Oferta ${offerNumber}</span>
+        <button onclick="window.print()">🖨️ Drukuj / Zapisz PDF</button>
+      </div>
+      <div id="content-wrapper">
+    `;
+
+    // window.print() wywołane ze ŚRODKA załadowanej strony działa na iOS Safari i Android Chrome
+    // (otwiera natywny dialog: iOS → "Zapisz do Plików" jako PDF, Android → "Drukuj" → PDF)
+    const autoTriggerScript = `<script>window.onload = function(){ setTimeout(function(){ window.print(); }, 600); }<\/script>`;
+
+    const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Oferta ${offerNumber}</title><style>${printCss}</style>${autoTriggerScript}</head><body>${toolbarHtml}${printHtml}</div></body></html>`;
 
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     if (isMobile) {
-      // Na mobile window.open('','_blank') jest blokowane, a window.print() nie działa na iOS.
-      // Tworzymy Blob URL i otwieramy go przez element <a> (w kontekście kliknięcia – nie blokuje).
-      // Użytkownik może potem użyć natywnego Drukuj / Udostępnij przeglądarki.
+      // Na mobile otwieramy przez <a click> w kontekście user gesture → nie jest blokowane
       const blob = new Blob([fullHtml], { type: 'text/html; charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -26,7 +48,7 @@ const FinalOfferPrint = ({ offerData, onClose }) => {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 30000);
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
     } else {
       const printWindow = window.open('', '_blank');
       if (!printWindow) {
@@ -35,7 +57,6 @@ const FinalOfferPrint = ({ offerData, onClose }) => {
       }
       printWindow.document.write(fullHtml);
       printWindow.document.close();
-      setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
     }
   };
 
