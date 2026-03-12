@@ -79,6 +79,7 @@ export const ProjectProvider = ({ children }) => {
     const materialsTotal = getNum(grandTotal);
     const szafki = calculations?.szafki || [];
     const szuflady = calculations?.szuflady || [];
+    const totalSzafkiSztuk = szafki.reduce((sum, szafka) => sum + (parseInt(szafka.ilośćSztuk) || 1), 0);
     const korpusyCost = szafki.reduce((sum, item) => sum + getNum(item.cenaKorpus) + getNum(item.cenaPółki), 0);
     const frontyCost = szafki.reduce((sum, item) => sum + getNum(item.cenaFront), 0);
     const widocznyBokCost = (calculations?.widocznyBok || []).reduce((sum, item) => sum + getNum(item.cenaCałość), 0);
@@ -94,9 +95,10 @@ export const ProjectProvider = ({ children }) => {
       if (backName === 'Jak płyta korpusu') return sum;
       const width = getNum(szafka.szerokość);
       const height = getNum(szafka.wysokość);
+      const iloscSztuk = parseInt(szafka.ilośćSztuk) || 1;
       if (width <= 0 || height <= 0) return sum;
       const area = (width * height) / 1000000;
-      return sum + (area * getPlecyPrice(backName));
+      return sum + (area * iloscSztuk * getPlecyPrice(backName));
     }, 0);
     const plecyWasteCost = plecyBaseCost * (plecyWastePercent / 100);
     const wasteDetails = {
@@ -113,7 +115,7 @@ export const ProjectProvider = ({ children }) => {
     
     const stalaWartoscDoSzafek = settings.doliczone?.stalaWartoscDoSzafek;
     const plytaNaDnoSzuflady = settings.doliczone?.plytaNaDnoSzuflady;
-    const doliczoneCost = (stalaWartoscDoSzafek?.active ? getNum(stalaWartoscDoSzafek.price) * szafki.length : 0) + (plytaNaDnoSzuflady?.active ? getNum(plytaNaDnoSzuflady.surfacePerDrawer) * szuflady.length * getNum(plytaNaDnoSzuflady.pricePerM2) : 0);
+    const doliczoneCost = (stalaWartoscDoSzafek?.active ? getNum(stalaWartoscDoSzafek.price) * totalSzafkiSztuk : 0) + (plytaNaDnoSzuflady?.active ? getNum(plytaNaDnoSzuflady.surfacePerDrawer) * szuflady.length * getNum(plytaNaDnoSzuflady.pricePerM2) : 0);
     
     // Koszt pleców jest już częścią `materialsTotal`. W kosztach dodatkowych uwzględniamy tylko odpady.
     const additionalTotal = transportCost + projectCost + servicesCost + doliczoneCost + totalWasteCost;

@@ -56,7 +56,7 @@ const SummaryDashboard = () => {
 
 
     const summaryMetrics = {
-        iloscSzafek: szafki.length,
+      iloscSzafek: szafki.reduce((sum, szafka) => sum + (parseInt(szafka.ilośćSztuk) || 1), 0),
         powierzchniaKorpusyPolki: szafki.reduce((sum, szafka) => sum + (szafka.powierzchniaKorpus || 0) + (szafka.powierzchniaPółek || 0), 0),
         powierzchniaFronty: szafki.reduce((sum, szafka) => sum + (szafka.powierzchniaFront || 0), 0),
         powierzchniaBokowWidocznych: widoczneBoki.reduce((sum, bok) => sum + (bok.powierzchnia || 0), 0), // Nowa metryka
@@ -100,7 +100,7 @@ const SummaryDashboard = () => {
           key,
           name: key.charAt(0).toUpperCase() + key.slice(1),
           data,
-          items: data.reduce((sum, item) => sum + (parseInt(item.ilość) || 1), 0),
+          items: data.reduce((sum, item) => sum + (parseInt(item.ilośćSztuk ?? item.ilość) || 1), 0),
           total,
         };
       }).filter(Boolean), // Usuwamy puste sekcje
