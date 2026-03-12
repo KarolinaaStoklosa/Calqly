@@ -6,14 +6,37 @@ const FinalOfferPrint = ({ offerData, onClose }) => {
   const printRef = useRef();
 
   const handlePrint = () => {
-    if (!printRef.current) return;
     const printHtml = ReactDOMServer.renderToStaticMarkup(<PrintableContent {...offerData} />);
     const printCss = `body { font-family: Arial, sans-serif; margin: 0; -webkit-print-color-adjust: exact !important; color-adjust: exact !important; } @page { size: A4; margin: 0; } .no-break { page-break-inside: avoid; }`;
-    const printWindow = window.open('', '_blank');
     const offerNumber = offerData?.clientData?.offerNumber || 'oferta';
-    printWindow.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Oferta ${offerNumber}</title><style>${printCss}</style></head><body>${printHtml}</body></html>`);
-    printWindow.document.close();
-    setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
+    const fullHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Oferta ${offerNumber}</title><style>${printCss}</style></head><body>${printHtml}</body></html>`;
+
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      // Na mobile window.open('','_blank') jest blokowane, a window.print() nie działa na iOS.
+      // Tworzymy Blob URL i otwieramy go przez element <a> (w kontekście kliknięcia – nie blokuje).
+      // Użytkownik może potem użyć natywnego Drukuj / Udostępnij przeglądarki.
+      const blob = new Blob([fullHtml], { type: 'text/html; charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    } else {
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        alert('Zablokowano wyskakujące okna. Zezwól na nie w ustawieniach przeglądarki i spróbuj ponownie.');
+        return;
+      }
+      printWindow.document.write(fullHtml);
+      printWindow.document.close();
+      setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
+    }
   };
 
   return (
